@@ -8,23 +8,22 @@ import re
 # 화면 및 환경 설정
 st.set_page_config(page_title="소크라테스 인공지능 튜터", page_icon="🏛️", layout="wide")
 
-st.title("🏛️ 소크라테스 인공지능 튜터 (v2.0)")
+st.title("🏛️ 소크라테스 인공지능 튜터 (v2.1)")
 st.markdown("나만의 학습 자료를 올리고 기록을 영구적으로 보관합니다.")
 
-# 측면 메뉴: 열쇠 설정
+# 측면 메뉴: 새로고침 기능만 남김
 with st.sidebar:
-    st.markdown("### 현재 판본: v2.0")
-    st.header("⚙️ 환경 설정 (열쇠 입력)")
-    api_key = st.text_input("Upstage API Key", type="password")
-    supa_url = st.text_input("Supabase URL", type="password")
-    supa_key = st.text_input("Supabase API Key", type="password")
-    
-    st.divider()
+    st.markdown("### 현재 판본: v2.1")
     if st.button("🔄 화면 새로고침", use_container_width=True):
         st.rerun()
 
-if not (api_key and supa_url and supa_key):
-    st.warning("👈 측면 메뉴에 세 개의 열쇠(Upstage, Supabase 주소, Supabase 키)를 모두 입력해야 시작할 수 있습니다.")
+# 서버 비밀 금고(Secrets)에서 열쇠 꺼내기
+try:
+    api_key = st.secrets["UPSTAGE_API_KEY"]
+    supa_url = st.secrets["SUPABASE_URL"]
+    supa_key = st.secrets["SUPABASE_KEY"]
+except KeyError:
+    st.error("서버에 API 열쇠가 등록되지 않았습니다. 관리자 설정(Secrets)을 확인하세요.")
     st.stop()
 
 # 인공지능 및 데이터베이스 연결
@@ -124,7 +123,7 @@ with st.sidebar:
                 st.caption(f"A: {item['user_answer']}")
                 st.divider()
 
-# 이하 기존 기능 유지
+# 이하 질문 생성 및 평가 기능
 def generate_new_question(mode="initial", prev_question=""):
     with st.spinner("자료를 분석하여 질문을 만들고 있습니다... (최대 30초 소요)"):
         mode_instruction = ""
@@ -256,7 +255,6 @@ if st.session_state.question_data:
                         match = re.search(r"\[평가 결과:\s*(정답|오답|부분점수)\]", feedback_text)
                         eval_result = match.group(1) if match else "미분류"
                         
-                        # 임시 기억 장치 대신 Supabase 데이터베이스에 기록 전송
                         try:
                             supabase.table("qa_history").insert({
                                 "user_id": st.session_state.user.id,
