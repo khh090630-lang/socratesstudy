@@ -7,7 +7,7 @@ import re
 # 화면 및 환경 설정
 st.set_page_config(page_title="소크라테스 인공지능 튜터", page_icon="🏛️", layout="wide")
 
-st.title("🏛️ 소크라테스 인공지능 튜터 (v1.3)")
+st.title("🏛️ 소크라테스 인공지능 튜터 (v1.4)")
 st.markdown("학습 자료를 올리고 문제를 풀며 이해도를 점검합니다.")
 
 # 상태 저장 설정
@@ -24,7 +24,7 @@ if "evaluation_done" not in st.session_state:
 
 # 측면 메뉴: 설정 및 오답 노트
 with st.sidebar:
-    st.markdown("### 현재 판본: v1.3")
+    st.markdown("### 현재 판본: v1.4")
     st.header("⚙️ 환경 설정")
     api_key = st.text_input("Upstage API Key를 입력하세요", type="password")
     
@@ -66,15 +66,16 @@ if not api_key:
     st.warning("👈 측면 메뉴에 Upstage API Key를 입력해야 시작할 수 있습니다.")
     st.stop()
 
-# 업스테이지 연결 설정
+# 업스테이지 연결 설정 (시간 제한 30초 추가)
 client = OpenAI(
     api_key=api_key,
-    base_url="https://api.upstage.ai/v1/solar"
+    base_url="https://api.upstage.ai/v1/solar",
+    timeout=30.0
 )
 
 # 인공지능에 질문 생성을 요청하는 함수
 def generate_new_question(mode="initial", prev_question=""):
-    with st.spinner("자료를 분석하여 질문을 만들고 있습니다..."):
+    with st.spinner("자료를 분석하여 질문을 만들고 있습니다... (최대 30초 소요)"):
         mode_instruction = ""
         if mode == "similar":
             mode_instruction = f"* 이전 질문('{prev_question}')에서 다룬 핵심 개념을 똑같이 다루되, 묻는 방식이나 관점을 바꾸어 새로운 질문을 생성한다."
@@ -93,7 +94,7 @@ def generate_new_question(mode="initial", prev_question=""):
         * 핵심어 목록: 모범 답안에 포함되어야 할 빈칸의 정답 단어들을 배열 형태로 제공한다.
         {mode_instruction}
         
-        반드시 아래의 JSON 형식만 출력한다. 다른 설명은 추가하지 않는다.
+        반드시 아래의 정해진 데이터 형식만 출력한다. 다른 설명은 추가하지 않는다.
         {{
             "question": "핵심 개념을 묻는 서술형 질문 내용만 기재",
             "hint": "_______가 발생하여 _______에 영향을 미치기 때문이다.",
@@ -101,7 +102,9 @@ def generate_new_question(mode="initial", prev_question=""):
         }}
         """
         
-        user_content = f"[학습 자료 내용]\n{st.session_state.context_data}"
+        # 글자 수 제한 안전장치 추가 (최대 4000자)
+        safe_context = st.session_state.context_data[:4000]
+        user_content = f"[학습 자료 내용]\n{safe_context}"
         
         try:
             response = client.chat.completions.create(
@@ -120,7 +123,7 @@ def generate_new_question(mode="initial", prev_question=""):
             st.rerun()
             
         except Exception as e:
-            st.error(f"오류가 발생했습니다: {e}")
+            st.error(f"시간 초과 혹은 연결 오류가 발생했습니다. 다시 단추를 눌러주세요. (상세 오류: {e})")
 
 # 학습 자료 입력부
 st.subheader("첫 번째 단계. 학습 자료 입력")
@@ -175,7 +178,7 @@ if st.session_state.question_data:
                 st.markdown(user_answer)
                 
             with st.chat_message("assistant"):
-                with st.spinner("답변을 분석하여 평가 의견을 작성 중입니다..."):
+                with st.spinner("답변을 분석하여 평가 의견을 작성 중입니다... (최대 30초 소요)"):
                     keywords_str = ", ".join(q_data['keywords'])
                     evaluation_instruction = f"""
                     당신은 학생의 서술형 답변을 평가하는 튜터이다.
@@ -217,7 +220,7 @@ if st.session_state.question_data:
                         st.rerun()
                         
                     except Exception as e:
-                        st.error(f"오류가 발생했습니다: {e}")
+                        st.error(f"시간 초과 혹은 연결 오류가 발생했습니다. 다시 입력해주세요. (상세 오류: {e})")
                         
     else:
         st.divider()
