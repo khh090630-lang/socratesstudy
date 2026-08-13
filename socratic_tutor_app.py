@@ -7,7 +7,7 @@ import re
 # 화면 및 환경 설정
 st.set_page_config(page_title="소크라테스 인공지능 튜터", page_icon="🏛️", layout="wide")
 
-st.title("🏛️ 소크라테스 인공지능 튜터 (v1.4)")
+st.title("🏛️ 소크라테스 인공지능 튜터 (v1.5)")
 st.markdown("학습 자료를 올리고 문제를 풀며 이해도를 점검합니다.")
 
 # 상태 저장 설정
@@ -24,7 +24,7 @@ if "evaluation_done" not in st.session_state:
 
 # 측면 메뉴: 설정 및 오답 노트
 with st.sidebar:
-    st.markdown("### 현재 판본: v1.4")
+    st.markdown("### 현재 판본: v1.5")
     st.header("⚙️ 환경 설정")
     api_key = st.text_input("Upstage API Key를 입력하세요", type="password")
     
@@ -94,7 +94,7 @@ def generate_new_question(mode="initial", prev_question=""):
         * 핵심어 목록: 모범 답안에 포함되어야 할 빈칸의 정답 단어들을 배열 형태로 제공한다.
         {mode_instruction}
         
-        반드시 아래의 정해진 데이터 형식만 출력한다. 다른 설명은 추가하지 않는다.
+        반드시 아래의 JSON 형식만 출력한다. 다른 설명은 추가하지 않는다.
         {{
             "question": "핵심 개념을 묻는 서술형 질문 내용만 기재",
             "hint": "_______가 발생하여 _______에 영향을 미치기 때문이다.",
