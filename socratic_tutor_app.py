@@ -1,14 +1,44 @@
 import streamlit as st
 from openai import OpenAI
 from pypdf import PdfReader
+from supabase import create_client, Client
 import json
 import re
 
 # 화면 및 환경 설정
 st.set_page_config(page_title="소크라테스 인공지능 튜터", page_icon="🏛️", layout="wide")
 
-st.title("🏛️ 소크라테스 인공지능 튜터 (v1.5)")
-st.markdown("학습 자료를 올리고 문제를 풀며 이해도를 점검합니다.")
+st.title("🏛️ 소크라테스 인공지능 튜터 (v2.0)")
+st.markdown("나만의 학습 자료를 올리고 기록을 영구적으로 보관합니다.")
+
+# 측면 메뉴: 열쇠 설정
+with st.sidebar:
+    st.markdown("### 현재 판본: v2.0")
+    st.header("⚙️ 환경 설정 (열쇠 입력)")
+    api_key = st.text_input("Upstage API Key", type="password")
+    supa_url = st.text_input("Supabase URL", type="password")
+    supa_key = st.text_input("Supabase API Key", type="password")
+    
+    st.divider()
+    if st.button("🔄 화면 새로고침", use_container_width=True):
+        st.rerun()
+
+if not (api_key and supa_url and supa_key):
+    st.warning("👈 측면 메뉴에 세 개의 열쇠(Upstage, Supabase 주소, Supabase 키)를 모두 입력해야 시작할 수 있습니다.")
+    st.stop()
+
+# 인공지능 및 데이터베이스 연결
+client = OpenAI(
+    api_key=api_key,
+    base_url="https://api.upstage.ai/v1/solar",
+    timeout=30.0
+)
+
+try:
+    supabase: Client = create_client(supa_url, supa_key)
+except Exception as e:
+    st.error(f"데이터베이스 연결에 실패했습니다: {e}")
+    st.stop()
 
 # 상태 저장 설정
 if "question_data" not in st.session_state:
@@ -17,63 +47,84 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "context_data" not in st.session_state:
     st.session_state.context_data = ""
-if "qa_history" not in st.session_state:
-    st.session_state.qa_history = [] 
 if "evaluation_done" not in st.session_state:
-    st.session_state.evaluation_done = False 
+    st.session_state.evaluation_done = False
+if "user" not in st.session_state:
+    st.session_state.user = None
 
-# 측면 메뉴: 설정 및 오답 노트
-with st.sidebar:
-    st.markdown("### 현재 판본: v1.5")
-    st.header("⚙️ 환경 설정")
-    api_key = st.text_input("Upstage API Key를 입력하세요", type="password")
+# 로그인 화면 구현
+if st.session_state.user is None:
+    st.subheader("🔒 사용자 접속 (로그인)")
+    st.markdown("학습 기록을 영구적으로 저장하기 위해 로그인이 필요합니다.")
     
+    login_email = st.text_input("이메일")
+    login_password = st.text_input("비밀번호", type="password")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("로그인", use_container_width=True):
+            try:
+                auth_response = supabase.auth.sign_in_with_password({"email": login_email, "password": login_password})
+                st.session_state.user = auth_response.user
+                st.success("접속에 성공했습니다!")
+                st.rerun()
+            except Exception as e:
+                st.error("접속 실패: 이메일과 비밀번호를 확인해주세요.")
+    with col2:
+        if st.button("새로 가입하기", use_container_width=True):
+            try:
+                auth_response = supabase.auth.sign_up({"email": login_email, "password": login_password})
+                st.success("가입이 완료되었습니다. 이제 로그인 단추를 눌러 접속하세요.")
+            except Exception as e:
+                st.error(f"가입 실패: {e}")
+    st.stop()
+
+# 로그인 성공 후 우측 상단 로그아웃 기능 및 기록 불러오기
+with st.sidebar:
     st.divider()
-    if st.button("🔄 대화 및 기록 초기화", use_container_width=True):
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
+    st.write(f"👤 **{st.session_state.user.email}**님 접속 중")
+    if st.button("로그아웃", use_container_width=True):
+        st.session_state.user = None
+        supabase.auth.sign_out()
         st.rerun()
         
     st.divider()
-    st.header("📝 학습 기록 (오답 노트)")
+    st.header("📝 나의 학습 기록 (오답 노트)")
     
-    if not st.session_state.qa_history:
+    # 데이터베이스에서 현재 사용자의 기록 불러오기
+    try:
+        db_response = supabase.table("qa_history").select("*").eq("user_id", st.session_state.user.id).order("created_at", desc=True).execute()
+        qa_history = db_response.data
+    except Exception as e:
+        st.error(f"기록을 불러오지 못했습니다: {e}")
+        qa_history = []
+        
+    if not qa_history:
         st.info("아직 풀이한 문제가 없습니다.")
     else:
-        correct_list = [item for item in st.session_state.qa_history if item['result'] == "정답"]
-        partial_list = [item for item in st.session_state.qa_history if item['result'] == "부분점수"]
-        incorrect_list = [item for item in st.session_state.qa_history if item['result'] == "오답"]
+        correct_list = [item for item in qa_history if item['result'] == "정답"]
+        partial_list = [item for item in qa_history if item['result'] == "부분점수"]
+        incorrect_list = [item for item in qa_history if item['result'] == "오답"]
         
         with st.expander(f"🟢 정답 ({len(correct_list)}개)"):
-            for idx, item in enumerate(correct_list):
+            for item in correct_list:
                 st.markdown(f"**Q:** {item['question']}")
                 st.caption(f"A: {item['user_answer']}")
                 st.divider()
                 
         with st.expander(f"🟡 부분점수 ({len(partial_list)}개)"):
-            for idx, item in enumerate(partial_list):
+            for item in partial_list:
                 st.markdown(f"**Q:** {item['question']}")
                 st.caption(f"A: {item['user_answer']}")
                 st.divider()
                 
         with st.expander(f"🔴 오답 ({len(incorrect_list)}개)"):
-            for idx, item in enumerate(incorrect_list):
+            for item in incorrect_list:
                 st.markdown(f"**Q:** {item['question']}")
                 st.caption(f"A: {item['user_answer']}")
                 st.divider()
 
-if not api_key:
-    st.warning("👈 측면 메뉴에 Upstage API Key를 입력해야 시작할 수 있습니다.")
-    st.stop()
-
-# 업스테이지 연결 설정 (시간 제한 30초 추가)
-client = OpenAI(
-    api_key=api_key,
-    base_url="https://api.upstage.ai/v1/solar",
-    timeout=30.0
-)
-
-# 인공지능에 질문 생성을 요청하는 함수
+# 이하 기존 기능 유지
 def generate_new_question(mode="initial", prev_question=""):
     with st.spinner("자료를 분석하여 질문을 만들고 있습니다... (최대 30초 소요)"):
         mode_instruction = ""
@@ -102,7 +153,6 @@ def generate_new_question(mode="initial", prev_question=""):
         }}
         """
         
-        # 글자 수 제한 안전장치 추가 (최대 4000자)
         safe_context = st.session_state.context_data[:4000]
         user_content = f"[학습 자료 내용]\n{safe_context}"
         
@@ -125,7 +175,6 @@ def generate_new_question(mode="initial", prev_question=""):
         except Exception as e:
             st.error(f"시간 초과 혹은 연결 오류가 발생했습니다. 다시 단추를 눌러주세요. (상세 오류: {e})")
 
-# 학습 자료 입력부
 st.subheader("첫 번째 단계. 학습 자료 입력")
 input_type = st.radio("자료 형태를 선택하세요", ["글 붙여넣기", "PDF 문서 올리기"], horizontal=True)
 
@@ -145,7 +194,6 @@ elif input_type == "PDF 문서 올리기":
         with st.expander("추출된 글자 확인"):
             st.write(context_text[:1000] + "... (생략)")
 
-# 질문 최초 생성 단추
 if st.button("🧠 학습 시작하기 (최초 질문 생성)", type="primary"):
     if not context_text.strip():
         st.error("학습 자료를 먼저 입력해야 합니다.")
@@ -153,7 +201,6 @@ if st.button("🧠 학습 시작하기 (최초 질문 생성)", type="primary"):
         st.session_state.context_data = context_text
         generate_new_question(mode="initial")
 
-# 문답 진행 및 평가
 if st.session_state.question_data:
     q_data = st.session_state.question_data
     
@@ -209,13 +256,18 @@ if st.session_state.question_data:
                         match = re.search(r"\[평가 결과:\s*(정답|오답|부분점수)\]", feedback_text)
                         eval_result = match.group(1) if match else "미분류"
                         
-                        st.session_state.qa_history.append({
-                            "question": q_data['question'],
-                            "user_answer": user_answer,
-                            "result": eval_result,
-                            "feedback": feedback_text
-                        })
-                        
+                        # 임시 기억 장치 대신 Supabase 데이터베이스에 기록 전송
+                        try:
+                            supabase.table("qa_history").insert({
+                                "user_id": st.session_state.user.id,
+                                "question": q_data['question'],
+                                "user_answer": user_answer,
+                                "result": eval_result,
+                                "feedback": feedback_text
+                            }).execute()
+                        except Exception as db_err:
+                            st.error(f"기록 저장 중 오류가 발생했습니다: {db_err}")
+                            
                         st.session_state.evaluation_done = True
                         st.rerun()
                         
