@@ -8,179 +8,185 @@ import re
 # 화면 및 환경 설정
 st.set_page_config(page_title="인공지능 튜터", page_icon="🏛️", layout="wide")
 
-# 세련되고 간결한 모던 라이트(Modern Light) CSS 강제 주입
+# 다크 브루탈리스트(Dark Brutalist) / 테크니컬 대시보드 CSS 강제 주입
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
-  --color-canvas: #fafafa;
-  --color-surface-1: #ffffff;
-  --color-surface-2: #f3f4f6;
-  --color-hairline: #e5e7eb;
-  --color-hairline-strong: #d1d5db;
-  --color-primary: #0f172a;
-  --color-primary-hover: #1e293b;
-  --color-primary-focus: rgba(15, 23, 42, 0.15);
-  --color-ink: #111827;
-  --color-ink-muted: #374151;
-  --color-ink-subtle: #6b7280;
+  /* Dark Brutalist Colors */
+  --bg-color: #050505;
+  --panel-bg: #0a0a0a;
+  --border-color: #333333;
+  --border-focus: #ffffff;
   
-  --rounded-xs: 4px;
-  --rounded-sm: 6px;
-  --rounded-md: 8px;
-  --rounded-lg: 12px;
-  --rounded-xl: 16px;
+  --text-main: #f4f4f5;
+  --text-muted: #888888;
   
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  /* High Contrast Accents */
+  --accent-bg: #ffffff;
+  --accent-text: #000000;
+  
+  /* Sharp Edges Only */
+  --radius: 0px;
 }
 
 html, body, [class*="css"] {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif !important;
-    color: var(--color-ink) !important;
-    background-color: var(--color-canvas) !important;
+    font-family: 'Inter', -apple-system, sans-serif !important;
+    color: var(--text-main) !important;
+    background-color: var(--bg-color) !important;
     line-height: 1.6 !important;
 }
 
 .stApp {
-    background-color: var(--color-canvas) !important;
+    background-color: var(--bg-color) !important;
 }
 
+/* 측면 메뉴: 날카로운 우측 테두리 */
 [data-testid="stSidebar"] {
-    background-color: var(--color-surface-2) !important;
-    border-right: 1px solid var(--color-hairline) !important;
+    background-color: var(--bg-color) !important;
+    border-right: 1px solid var(--border-color) !important;
 }
 [data-testid="stSidebar"] * {
-    color: var(--color-ink-muted) !important;
-    text-shadow: none !important;
+    color: var(--text-muted) !important;
 }
 
+/* 제목 꾸밈: 아주 두껍고 대문자 강조 */
 h1, h2, h3, h4, h5, h6 {
-    color: var(--color-ink) !important;
-    font-weight: 700 !important;
+    color: var(--text-main) !important;
+    font-weight: 900 !important;
     letter-spacing: -0.5px !important;
-    -webkit-text-stroke: 0px !important;
-    text-shadow: none !important;
+    text-transform: uppercase !important;
 }
 
+/* 정답 제출 등 주요 액션 단추 (White block, Black text) */
 button[kind="primary"] {
-    background-color: var(--color-primary) !important;
-    color: #ffffff !important;
-    font-weight: 500 !important;
-    border-radius: var(--rounded-md) !important;
-    border: none !important;
-    padding: 8px 16px !important;
-    box-shadow: var(--shadow-sm) !important;
-    transition: all 0.2s ease;
+    background-color: var(--accent-bg) !important;
+    color: var(--accent-text) !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    border-radius: var(--radius) !important;
+    border: 1px solid var(--accent-bg) !important;
+    padding: 10px 24px !important;
+    box-shadow: none !important;
+    transition: all 0.1s ease;
 }
 button[kind="primary"]:active, button[kind="primary"]:hover {
-    background-color: var(--color-primary-hover) !important;
-    box-shadow: var(--shadow-md) !important;
-    transform: translateY(-1px);
+    background-color: #dddddd !important;
+    border-color: #dddddd !important;
 }
 
+/* 보조 단추 (투명 바탕, 얇은 테두리) */
 button[kind="secondary"] {
-    background-color: var(--color-surface-1) !important;
-    color: var(--color-ink) !important;
-    font-weight: 500 !important;
-    border-radius: var(--rounded-md) !important;
-    border: 1px solid var(--color-hairline-strong) !important;
-    padding: 8px 16px !important;
-    box-shadow: var(--shadow-sm) !important;
-    transition: all 0.2s ease;
+    background-color: transparent !important;
+    color: var(--text-main) !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    border-radius: var(--radius) !important;
+    border: 1px solid var(--border-color) !important;
+    padding: 10px 24px !important;
+    box-shadow: none !important;
 }
 button[kind="secondary"]:hover {
-    background-color: var(--color-surface-2) !important;
-    border: 1px solid #9ca3af !important;
+    background-color: #111111 !important;
+    border: 1px solid var(--text-muted) !important;
 }
 
+/* 입력창 및 패널 */
 .stTextInput input, .stTextArea textarea, [data-testid="stSelectbox"] div[data-baseweb="select"] {
-    background-color: var(--color-surface-1) !important;
-    border: 1px solid var(--color-hairline-strong) !important;
-    border-radius: var(--rounded-md) !important;
-    color: var(--color-ink) !important;
-    padding: 8px 12px !important;
-    box-shadow: var(--shadow-sm) !important;
-    transition: all 0.2s ease;
+    background-color: var(--bg-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius) !important;
+    color: var(--text-main) !important;
+    padding: 12px !important;
 }
 .stTextInput input:focus, .stTextArea textarea:focus {
-    border: 1px solid var(--color-primary) !important;
-    box-shadow: 0 0 0 3px var(--color-primary-focus) !important;
-    outline: none !important;
+    border: 1px solid var(--border-focus) !important;
+    box-shadow: none !important;
 }
 
+/* 묶음 패널 (완벽한 사각형 박스) */
 [data-testid="stExpander"], div[data-testid="stContainer"] {
-    background-color: var(--color-surface-1) !important;
-    border-radius: var(--rounded-lg) !important;
-    border: 1px solid var(--color-hairline) !important;
+    background-color: var(--panel-bg) !important;
+    border-radius: var(--radius) !important;
+    border: 1px solid var(--border-color) !important;
     padding: 24px !important;
-    box-shadow: var(--shadow-sm) !important;
-}
-[data-testid="stExpander"] * {
-    color: var(--color-ink) !important;
+    box-shadow: none !important;
 }
 
-/* 대시보드 통계 위젯(Metric) 꾸밈 */
+/* 대시보드 통계 위젯(Metric) */
 [data-testid="stMetric"] {
-    background-color: var(--color-surface-1) !important;
-    border: 1px solid var(--color-hairline) !important;
-    border-radius: var(--rounded-lg) !important;
+    background-color: var(--panel-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius) !important;
     padding: 20px !important;
-    box-shadow: var(--shadow-sm) !important;
+    box-shadow: none !important;
 }
 
-/* 탭(Tabs) 세련된 스타일링 */
+/* 탭(Tabs) 테크니컬 스타일링 (선과 면의 강렬한 대비) */
 .stTabs [data-baseweb="tab-list"] {
-    gap: 12px;
-    margin-bottom: 24px;
+    gap: 0px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--border-color);
 }
 .stTabs [data-baseweb="tab"] {
-    padding: 10px 20px;
-    border-radius: var(--rounded-md);
-    background-color: var(--color-surface-1);
-    border: 1px solid var(--color-hairline);
-    box-shadow: var(--shadow-sm);
-    font-weight: 600 !important;
-    color: var(--color-ink-muted) !important;
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    color: var(--text-muted) !important;
 }
 .stTabs [aria-selected="true"] {
-    background-color: var(--color-primary) !important;
-    color: white !important;
-    border-color: var(--color-primary) !important;
+    background-color: var(--accent-bg) !important;
+    color: var(--accent-text) !important;
+    border: 1px solid var(--accent-bg) !important;
+    border-bottom: none !important;
 }
 
+/* 채팅창 말풍선 */
 .stChatMessage {
-    background-color: var(--color-surface-1) !important;
-    border-radius: var(--rounded-lg) !important;
-    border: 1px solid var(--color-hairline) !important;
-    color: var(--color-ink) !important;
-    box-shadow: var(--shadow-sm) !important;
-    padding: 16px !important;
+    background-color: var(--panel-bg) !important;
+    border-radius: var(--radius) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+    padding: 20px !important;
 }
 
+/* 안내 및 경고 상자 (좌측 굵은 테두리로 포인트) */
 .stAlert {
-    background-color: var(--color-surface-1) !important;
-    border: 1px solid var(--color-hairline) !important;
-    border-radius: var(--rounded-lg) !important;
-    color: var(--color-ink) !important;
-    box-shadow: var(--shadow-sm) !important;
+    background-color: var(--panel-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    border-left: 4px solid var(--text-main) !important;
+    border-radius: var(--radius) !important;
+    color: var(--text-main) !important;
+}
+
+/* 메타 텍스트(캡션 등) 모노스페이스 적용 */
+small, .stCaption {
+    font-family: 'JetBrains Mono', monospace !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 label {
-    color: var(--color-ink-muted) !important;
-    font-weight: 500 !important;
-    font-size: 14px !important;
+    color: var(--text-muted) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    text-transform: uppercase;
+    font-size: 12px !important;
+    letter-spacing: 1px;
 }
 
 hr {
-    border-bottom-color: var(--color-hairline) !important;
-    margin: 24px 0 !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    margin: 32px 0 !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🏛️ 인공지능 튜터 (v8.0)")
+st.title("APP SHELL / AI TUTOR (v9.0)")
 
 # 서버 비밀 금고에서 열쇠 꺼내기
 try:
@@ -224,15 +230,15 @@ if "user" not in st.session_state:
 
 # 로그인 화면 구현
 if st.session_state.user is None:
-    st.subheader("사용자 접속 (로그인)")
+    st.subheader("USER AUTHENTICATION")
     st.markdown("학습 기록을 영구적으로 저장하고 오답 노트를 활용하기 위해 로그인이 필요합니다.")
     
-    login_email = st.text_input("이메일")
-    login_password = st.text_input("비밀번호", type="password")
+    login_email = st.text_input("EMAIL ADDRESS")
+    login_password = st.text_input("PASSWORD", type="password")
     
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("로그인", use_container_width=True):
+        if st.button("SIGN IN", use_container_width=True):
             try:
                 auth_response = supabase.auth.sign_in_with_password({"email": login_email, "password": login_password})
                 st.session_state.user = auth_response.user
@@ -241,7 +247,7 @@ if st.session_state.user is None:
             except Exception as e:
                 st.error("접속 실패: 이메일과 비밀번호를 확인해주세요.")
     with col2:
-        if st.button("새로 가입하기", use_container_width=True):
+        if st.button("REGISTER NEW ACCOUNT", use_container_width=True):
             try:
                 auth_response = supabase.auth.sign_up({"email": login_email, "password": login_password})
                 st.success("가입이 완료되었습니다. 이제 로그인 단추를 눌러 접속하세요.")
@@ -252,15 +258,15 @@ if st.session_state.user is None:
 # 측면 메뉴 (프로필 및 간소화)
 with st.sidebar:
     user_name = st.session_state.user.email.split('@')[0]
-    st.markdown(f"### 👋 안녕하세요, {user_name}님")
+    st.markdown(f"### /MY ACCOUNT\n**{user_name}**")
     st.caption(f"{st.session_state.user.email}")
     st.divider()
-    if st.button("로그아웃", use_container_width=True):
+    if st.button("SIGN OUT", use_container_width=True):
         st.session_state.user = None
         supabase.auth.sign_out()
         st.rerun()
     st.divider()
-    st.caption("현재 판본: v8.0 (대시보드 통합)")
+    st.caption("VERSION: 9.0 (DARK BRUTALIST)")
 
 # --- 공통 함수 ---
 
@@ -296,7 +302,7 @@ def reset_learning_state():
     st.session_state.is_correct = False
 
 def analyze_topics(text):
-    with st.spinner("문서의 구조와 지문 제목을 분석하고 있습니다..."):
+    with st.spinner("ANALYZING DOCUMENT STRUCTURE..."):
         sys_instruction = """
         주어진 학습 자료를 분석하여 다음 사항을 추출하라.
         * document_title: 제시된 자료가 문학 작품(시, 소설 등), 비문학 독해 지문, 영어 지문 등 특정한 '본문'을 바탕으로 한다면 그 작품의 제목이나 핵심 소재(예: '윤동주 - 서시', '두 편의 시(길, 장래희망)')를 구체적으로 추출하라. 단순한 이론이나 과학 개념 설명문인 경우에만 '일반 학습 자료'라고 작성하라.
@@ -327,7 +333,7 @@ def analyze_topics(text):
             return "일반 학습 자료", []
 
 def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
-    with st.spinner(f"'{topic}' 부분에 집중하여 문제를 출제 중입니다..."):
+    with st.spinner(f"GENERATING QUESTION FOR TOPIC: '{topic}'..."):
         mode_instruction = f"* 출제 범위: 학습 자료 전체 내용 중 반드시 '{topic}' 카테고리와 관련된 내용을 핵심으로 삼아 출제한다."
         if mode == "similar":
             mode_instruction += f"\n* 이전 질문('{prev_question}')과 유사한 개념을 묻되, 묻는 방식을 바꾼다."
@@ -410,7 +416,7 @@ def process_answer(user_answer, q_data):
         st.markdown(user_answer)
         
     with st.chat_message("assistant"):
-        with st.spinner("튜터가 답변을 읽고 생각 중입니다..."):
+        with st.spinner("PROCESSING ANSWER..."):
             if q_data.get('type') == 'multiple_choice':
                 eval_rules = """
                 [평가 규칙]
@@ -492,11 +498,11 @@ incorrect_list = [item for item in qa_history if item['result'] == "오답"]
 # --- 메인 화면 렌더링 분기 ---
 if st.session_state.question_data is None:
     # 1. 대시보드 / 학습 / 관리 탭 모드
-    tab_dash, tab_learn, tab_review = st.tabs(["📊 대시보드", "📖 새로운 학습", "📝 오답 노트"])
+    tab_dash, tab_learn, tab_review = st.tabs(["[DASHBOARD]", "[NEW SESSION]", "[ERROR LOGS]"])
     
     # 탭 1: 대시보드
     with tab_dash:
-        st.subheader("나의 학습 현황 요약")
+        st.subheader("PERFORMANCE METRICS")
         
         total_q = len(qa_history)
         correct_n = len(correct_list)
@@ -505,53 +511,54 @@ if st.session_state.question_data is None:
         accuracy = (correct_n / total_q * 100) if total_q > 0 else 0
         
         col1, col2, col3, col4 = st.columns(4)
-        col1.metric("총 학습 문제", f"{total_q}개")
-        col2.metric("정답률", f"{accuracy:.1f}%")
-        col3.metric("완벽한 정답", f"{correct_n}개")
-        col4.metric("복습 필요 (오답/부분)", f"{partial_n + wrong_n}개")
+        col1.metric("TOTAL ATTEMPTS", f"{total_q}")
+        col2.metric("ACCURACY", f"{accuracy:.1f}%")
+        col3.metric("PERFECT SCORES", f"{correct_n}")
+        col4.metric("NEEDS REVIEW", f"{partial_n + wrong_n}")
         
         st.divider()
         if total_q == 0:
-            st.info("아직 학습 기록이 없습니다. '새로운 학습' 탭에서 첫 문제를 풀어보세요!")
+            st.info("NO DATA AVAILABLE. START A NEW SESSION.")
         else:
-            st.markdown("#### 최근 푼 문제")
+            st.markdown("#### RECENT LOGS")
             for item in qa_history[:5]:
                 with st.container(border=True):
-                    res_emoji = "🟢" if item['result'] == "정답" else ("🟡" if item['result'] == "부분점수" else "🔴")
+                    res_emoji = "✅" if item['result'] == "정답" else ("⚠️" if item['result'] == "부분점수" else "❌")
                     display_q = item['question'].split('\n')[0]
                     st.markdown(f"**{res_emoji} {item['result']}** | {display_q}")
                     
     # 탭 2: 새로운 학습
     with tab_learn:
+        st.subheader("INPUT DATA SOURCE")
         example_text = """[예시 지문] 윤동주 - 서시\n\n죽는 날까지 하늘을 우러러\n한 점 부끄럼이 없기를,\n잎새에 이는 바람에도\n나는 괴로워했다.\n별을 노래하는 마음으로\n모든 죽어가는 것을 사랑해야지.\n그리고 나한테 주어진 길을\n걸어가야겠다.\n\n오늘 밤에도 별이 바람에 스치운다."""
         
         col_input1, col_input2 = st.columns([2, 1])
         with col_input1:
-            input_type = st.radio("자료 형태", ["글 붙여넣기", "PDF 문서 올리기"], horizontal=True)
-            st.download_button("📄 예시 지문 파일(.txt) 다운로드", data=example_text, file_name="예시지문_서시.txt")
+            input_type = st.radio("DATA TYPE", ["TEXT INPUT", "PDF UPLOAD"], horizontal=True)
+            st.download_button("DOWNLOAD SAMPLE (.TXT)", data=example_text, file_name="sample_text.txt")
         with col_input2:
-            q_type_select = st.radio("출제 유형", ["서술형 (논리적 글쓰기)", "객관식 (5지 선다 추론형)"], horizontal=True)
+            q_type_select = st.radio("QUESTION FORMAT", ["SUBJECTIVE", "MULTIPLE CHOICE"], horizontal=True)
         
         context_text = ""
-        if input_type == "글 붙여넣기":
-            context_text = st.text_area("공부한 개념이나 글을 붙여넣으세요", height=150)
-        elif input_type == "PDF 문서 올리기":
-            uploaded_pdf = st.file_uploader("PDF 문서를 올리세요", type=["pdf"])
+        if input_type == "TEXT INPUT":
+            context_text = st.text_area("PASTE CONTEXT HERE", height=150)
+        elif input_type == "PDF UPLOAD":
+            uploaded_pdf = st.file_uploader("UPLOAD PDF", type=["pdf"])
             if uploaded_pdf:
                 reader = PdfReader(uploaded_pdf)
                 for page in reader.pages:
                     extracted = page.extract_text()
                     if extracted:
                         context_text += extracted + "\n"
-                st.success("문서 글자 추출 완료")
+                st.success("PDF EXTRACTION COMPLETE.")
         
         if context_text:
-            with st.expander("📄 입력된 전체 텍스트 확인 및 수정"):
-                context_text = st.text_area("원문 데이터", value=context_text, height=300, label_visibility="collapsed")
+            with st.expander("REVIEW & EDIT EXTRACTED TEXT"):
+                context_text = st.text_area("RAW DATA", value=context_text, height=300, label_visibility="collapsed")
         
-        if st.button("문서 분석 및 목차 추출", type="primary"):
+        if st.button("INITIALIZE ANALYSIS", type="primary"):
             if not context_text.strip():
-                st.error("학습 자료를 먼저 입력해야 합니다.")
+                st.error("NO CONTEXT PROVIDED.")
             else:
                 st.session_state.context_data = context_text
                 doc_title, doc_topics = analyze_topics(context_text)
@@ -560,18 +567,20 @@ if st.session_state.question_data is None:
         
         if st.session_state.topics:
             st.divider()
-            selected_topic = st.selectbox("어떤 부분의 문제를 풀어볼까요?", st.session_state.topics)
-            if st.button("해당 목차로 문제 생성하기", type="primary"):
-                generate_new_question(q_type=q_type_select, mode="initial", topic=selected_topic)
+            selected_topic = st.selectbox("SELECT TARGET TOPIC", st.session_state.topics)
+            if st.button("GENERATE ASSESSMENT", type="primary"):
+                q_type_mapped = "서술형 (논리적 글쓰기)" if q_type_select == "SUBJECTIVE" else "객관식 (5지 선다 추론형)"
+                generate_new_question(q_type=q_type_mapped, mode="initial", topic=selected_topic)
 
-    # 탭 3: 오답 노트 (기존 측면 메뉴에서 이동)
+    # 탭 3: 오답 노트
     with tab_review:
+        st.subheader("ERROR & REVIEW LOGS")
         if total_q == 0:
-            st.info("아직 풀이한 문제가 없습니다.")
+            st.info("NO LOGS AVAILABLE.")
         else:
-            with st.expander(f"🟢 정답 ({len(correct_list)}개)", expanded=False):
+            with st.expander(f"✅ PASSED ({len(correct_list)})", expanded=False):
                 if correct_list:
-                    if st.button("정답 기록 모두 삭제", key="del_all_correct", use_container_width=True):
+                    if st.button("PURGE PASSED LOGS", key="del_all_correct", use_container_width=True):
                         delete_all_by_result("정답")
                         st.rerun()
                     st.divider()
@@ -583,20 +592,20 @@ if st.session_state.question_data is None:
                             q_type, q_text, q_opts = parse_history_question(item['question'])
                             st.session_state.question_data = {
                                 "type": q_type, "is_retry": True, "question": q_text, "options": q_opts,
-                                "keywords": ["(인공지능이 채점합니다)"], "hint_step1": ["복습 모드에서는 제공되지 않습니다."], "hint_step2": "기억을 되살려 다시 완벽하게 풀어보세요!"
+                                "keywords": ["(AI EVALUATION)"], "hint_step1": ["UNAVAILABLE IN REVIEW MODE."], "hint_step2": "PREVIOUSLY PASSED."
                             }
                             st.session_state.messages = []
                             st.session_state.first_attempt_saved = False
                             st.session_state.is_correct = False
                             st.rerun()
                     with col2:
-                        if st.button("삭제", key=f"del_btn_correct_{item['id']}"):
+                        if st.button("DEL", key=f"del_btn_correct_{item['id']}"):
                             delete_record(item['id'])
                             st.rerun()
                     
-            with st.expander(f"🟡 부분점수 ({len(partial_list)}개)", expanded=True):
+            with st.expander(f"⚠️ PARTIAL ({len(partial_list)})", expanded=True):
                 if partial_list:
-                    if st.button("부분점수 기록 모두 삭제", key="del_all_partial", use_container_width=True):
+                    if st.button("PURGE PARTIAL LOGS", key="del_all_partial", use_container_width=True):
                         delete_all_by_result("부분점수")
                         st.rerun()
                     st.divider()
@@ -608,20 +617,20 @@ if st.session_state.question_data is None:
                             q_type, q_text, q_opts = parse_history_question(item['question'])
                             st.session_state.question_data = {
                                 "type": q_type, "is_retry": True, "question": q_text, "options": q_opts,
-                                "keywords": ["(인공지능이 채점합니다)"], "hint_step1": ["복습 모드에서는 제공되지 않습니다."], "hint_step2": "아쉽게 부분 점수를 받았던 문제입니다. 완벽한 답을 적어보세요!"
+                                "keywords": ["(AI EVALUATION)"], "hint_step1": ["UNAVAILABLE IN REVIEW MODE."], "hint_step2": "PREVIOUSLY PARTIAL."
                             }
                             st.session_state.messages = []
                             st.session_state.first_attempt_saved = False
                             st.session_state.is_correct = False
                             st.rerun()
                     with col2:
-                        if st.button("삭제", key=f"del_btn_partial_{item['id']}"):
+                        if st.button("DEL", key=f"del_btn_partial_{item['id']}"):
                             delete_record(item['id'])
                             st.rerun()
                     
-            with st.expander(f"🔴 오답 ({len(incorrect_list)}개)", expanded=True):
+            with st.expander(f"❌ FAILED ({len(incorrect_list)})", expanded=True):
                 if incorrect_list:
-                    if st.button("오답 기록 모두 삭제", key="del_all_incorrect", use_container_width=True):
+                    if st.button("PURGE FAILED LOGS", key="del_all_incorrect", use_container_width=True):
                         delete_all_by_result("오답")
                         st.rerun()
                     st.divider()
@@ -633,47 +642,47 @@ if st.session_state.question_data is None:
                             q_type, q_text, q_opts = parse_history_question(item['question'])
                             st.session_state.question_data = {
                                 "type": q_type, "is_retry": True, "question": q_text, "options": q_opts,
-                                "keywords": ["(인공지능이 채점합니다)"], "hint_step1": ["복습 모드에서는 제공되지 않습니다."], "hint_step2": "이전에 틀렸던 문제입니다. 다시 도전해 보세요!"
+                                "keywords": ["(AI EVALUATION)"], "hint_step1": ["UNAVAILABLE IN REVIEW MODE."], "hint_step2": "PREVIOUSLY FAILED."
                             }
                             st.session_state.messages = []
                             st.session_state.first_attempt_saved = False
                             st.session_state.is_correct = False
                             st.rerun()
                     with col2:
-                        if st.button("삭제", key=f"del_btn_wrong_{item['id']}"):
+                        if st.button("DEL", key=f"del_btn_wrong_{item['id']}"):
                             delete_record(item['id'])
                             st.rerun()
 
 else:
-    # 2. 문제 풀이 튜터링 모드 (탭 화면을 숨기고 튜터링 집중)
+    # 2. 문제 풀이 튜터링 모드
     q_data = st.session_state.question_data
     
     col_title, col_btn = st.columns([4, 1])
     with col_title:
-        st.subheader("개념 검증 문답")
+        st.subheader("ACTIVE SESSION")
     with col_btn:
-        if st.button("🏠 대시보드로 돌아가기", use_container_width=True):
+        if st.button("RETURN TO DASHBOARD", use_container_width=True):
             reset_learning_state()
             st.rerun()
     st.divider()
 
     if st.session_state.document_title and st.session_state.document_title != "일반 학습 자료":
-        st.info(f"분석된 지문 출처/제목: {st.session_state.document_title}")
+        st.info(f"SOURCE DOC: {st.session_state.document_title}")
     
     with st.container(border=True):
         display_q = q_data['question'].split('\n')[0]
         if q_data.get('type') == 'multiple_choice':
-            st.markdown(f"**[객관식]**\n\n### {display_q}")
+            st.markdown(f"**[MULTIPLE CHOICE]**\n\n### {display_q}")
         else:
-            st.markdown(f"**[서술형]**\n\n### {display_q}")
+            st.markdown(f"**[SUBJECTIVE]**\n\n### {display_q}")
     
     col_h1, col_h2 = st.columns(2)
     with col_h1:
-        with st.expander("1단계 힌트 (핵심어 찾기)"):
-            st.write(", ".join(q_data.get('hint_step1', ["힌트가 제공되지 않는 모드입니다."])))
+        with st.expander("HINT 1: KEYWORDS"):
+            st.write(", ".join(q_data.get('hint_step1', ["UNAVAILABLE."])))
     with col_h2:
-        with st.expander("2단계 힌트 (방향 및 문장 틀)"):
-            st.write(q_data.get('hint_step2', "힌트가 제공되지 않는 모드입니다."))
+        with st.expander("HINT 2: STRUCTURE"):
+            st.write(q_data.get('hint_step2', "UNAVAILABLE."))
 
     if q_data.get('type') == 'multiple_choice' and not st.session_state.first_attempt_saved:
         raw_options = q_data.get('options', [])
@@ -687,12 +696,12 @@ else:
         
         q_data['options'] = cleaned_options
         
-        mc_answer = st.radio("아래에서 정답을 선택하세요.", q_data.get('options', []), index=None)
-        if st.button("정답 제출", type="primary"):
+        mc_answer = st.radio("SELECT ANSWER:", q_data.get('options', []), index=None)
+        if st.button("SUBMIT ANSWER", type="primary"):
             if mc_answer:
                 process_answer(mc_answer, q_data)
             else:
-                st.warning("선택지를 먼저 고르세요.")
+                st.warning("SELECTION REQUIRED.")
     
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
@@ -701,21 +710,23 @@ else:
     if st.session_state.first_attempt_saved or st.session_state.is_correct:
         st.divider()
         if not st.session_state.is_correct:
-            st.info("튜터의 꼬리 질문에 계속 답변하며 스스로 정답을 찾아보세요! (또는 아래 단추를 눌러 넘어갈 수 있습니다)")
+            st.info("SESSION REMAINS OPEN FOR FOLLOW-UP QUESTIONS.")
             
-        st.markdown("### 다음 학습을 선택하세요")
+        st.markdown("### NEXT ACTIONS")
         col_next1, col_next2 = st.columns(2)
         
         with col_next1:
-            if st.button("현재 목차에서 다른 문제 다시 풀기", use_container_width=True):
-                generate_new_question(q_type="서술형 (논리적 글쓰기)" if q_data.get('type')=='subjective' else "객관식 (5지 선다 추론형)", mode="similar", prev_question=q_data['question'], topic=st.session_state.get('selected_topic', ''))
+            if st.button("REGENERATE (SAME TOPIC)", use_container_width=True):
+                q_type_str = "서술형 (논리적 글쓰기)" if q_data.get('type')=='subjective' else "객관식 (5지 선다 추론형)"
+                generate_new_question(q_type=q_type_str, mode="similar", prev_question=q_data['question'], topic=st.session_state.get('selected_topic', ''))
                 
         with col_next2:
-            if st.button("현재 목차에서 새로운 개념 문제 풀기", use_container_width=True):
-                generate_new_question(q_type="서술형 (논리적 글쓰기)" if q_data.get('type')=='subjective' else "객관식 (5지 선다 추론형)", mode="new", prev_question=q_data['question'], topic=st.session_state.get('selected_topic', ''))
+            if st.button("GENERATE (NEW TOPIC)", use_container_width=True):
+                q_type_str = "서술형 (논리적 글쓰기)" if q_data.get('type')=='subjective' else "객관식 (5지 선다 추론형)"
+                generate_new_question(q_type=q_type_str, mode="new", prev_question=q_data['question'], topic=st.session_state.get('selected_topic', ''))
 
     if not st.session_state.is_correct:
         if q_data.get('type') != 'multiple_choice' or st.session_state.first_attempt_saved:
-            user_answer = st.chat_input("답변이나 궁금한 점을 튜터에게 말해보세요...")
+            user_answer = st.chat_input("ENTER COMMAND OR RESPONSE...")
             if user_answer:
                 process_answer(user_answer, q_data)
