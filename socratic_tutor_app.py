@@ -8,28 +8,28 @@ import re
 # 화면 및 환경 설정
 st.set_page_config(page_title="인공지능 튜터", page_icon="🏛️", layout="wide")
 
-# Linear 스타일 다크 모드 CSS 강제 주입
+# 세련되고 간결한 모던 라이트(Modern Light) CSS 강제 주입
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
   /* Surface */
-  --color-canvas: #010102;
-  --color-surface-1: #0e0f11;
-  --color-surface-2: #181a1f;
-  --color-hairline: #23252a;
-  --color-hairline-strong: #3b3e46;
+  --color-canvas: #fafafa;
+  --color-surface-1: #ffffff;
+  --color-surface-2: #f3f4f6;
+  --color-hairline: #e5e7eb;
+  --color-hairline-strong: #d1d5db;
   
-  /* Brand Accent */
-  --color-primary: #5e6ad2;
-  --color-primary-hover: #828fff;
-  --color-primary-focus: rgba(94, 106, 210, 0.5);
+  /* Brand Accent (Sleek Dark Slate) */
+  --color-primary: #0f172a;
+  --color-primary-hover: #1e293b;
+  --color-primary-focus: rgba(15, 23, 42, 0.15);
   
   /* Typography Colors */
-  --color-ink: #f7f8f8;
-  --color-ink-muted: #d0d6e0;
-  --color-ink-subtle: #8a8f98;
+  --color-ink: #111827;
+  --color-ink-muted: #374151;
+  --color-ink-subtle: #6b7280;
   
   /* Border Radius */
   --rounded-xs: 4px;
@@ -37,6 +37,10 @@ st.markdown("""
   --rounded-md: 8px;
   --rounded-lg: 12px;
   --rounded-xl: 16px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
 }
 
 /* 기본 글꼴 강제 설정 및 전체 배경 */
@@ -44,6 +48,7 @@ html, body, [class*="css"] {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif !important;
     color: var(--color-ink) !important;
     background-color: var(--color-canvas) !important;
+    line-height: 1.6 !important;
 }
 
 .stApp {
@@ -52,7 +57,7 @@ html, body, [class*="css"] {
 
 /* 측면 메뉴 배경 */
 [data-testid="stSidebar"] {
-    background-color: var(--color-canvas) !important;
+    background-color: var(--color-surface-2) !important;
     border-right: 1px solid var(--color-hairline) !important;
 }
 [data-testid="stSidebar"] * {
@@ -60,19 +65,16 @@ html, body, [class*="css"] {
     text-shadow: none !important;
 }
 
-/* 제목 꾸밈 (마이너스 자간, 단단한 600 weight) */
+/* 제목 꾸밈 (깔끔하고 단단하게) */
 h1, h2, h3, h4, h5, h6 {
     color: var(--color-ink) !important;
-    font-weight: 600 !important;
-    letter-spacing: -1px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.5px !important;
     -webkit-text-stroke: 0px !important;
     text-shadow: none !important;
 }
-h1 { 
-    letter-spacing: -2px !important; 
-}
 
-/* 정답 제출 등 주요 액션 단추 (라벤더 블루, 8px 모서리, 그림자 없음) */
+/* 정답 제출 등 주요 액션 단추 (시크한 다크 슬레이트) */
 button[kind="primary"] {
     background-color: var(--color-primary) !important;
     color: #ffffff !important;
@@ -80,51 +82,54 @@ button[kind="primary"] {
     border-radius: var(--rounded-md) !important;
     border: none !important;
     padding: 8px 16px !important;
-    box-shadow: none !important;
-    transition: background-color 0.2s ease;
+    box-shadow: var(--shadow-sm) !important;
+    transition: all 0.2s ease;
 }
 button[kind="primary"]:active, button[kind="primary"]:hover {
     background-color: var(--color-primary-hover) !important;
-    border: none !important;
+    box-shadow: var(--shadow-md) !important;
+    transform: translateY(-1px);
 }
 
-/* 보조 단추 (Surface-1 바탕, 1px Hairline 테두리) */
+/* 보조 단추 (흰색 바탕, 옅은 테두리) */
 button[kind="secondary"] {
     background-color: var(--color-surface-1) !important;
     color: var(--color-ink) !important;
     font-weight: 500 !important;
     border-radius: var(--rounded-md) !important;
-    border: 1px solid var(--color-hairline) !important;
+    border: 1px solid var(--color-hairline-strong) !important;
     padding: 8px 16px !important;
-    box-shadow: none !important;
-    transition: background-color 0.2s ease;
+    box-shadow: var(--shadow-sm) !important;
+    transition: all 0.2s ease;
 }
 button[kind="secondary"]:hover {
     background-color: var(--color-surface-2) !important;
-    border: 1px solid var(--color-hairline-strong) !important;
+    border: 1px solid #9ca3af !important;
 }
 
 /* 입력창 및 패널 */
 .stTextInput input, .stTextArea textarea, [data-testid="stSelectbox"] div[data-baseweb="select"] {
     background-color: var(--color-surface-1) !important;
-    border: 1px solid var(--color-hairline) !important;
+    border: 1px solid var(--color-hairline-strong) !important;
     border-radius: var(--rounded-md) !important;
     color: var(--color-ink) !important;
     padding: 8px 12px !important;
+    box-shadow: var(--shadow-sm) !important;
     transition: all 0.2s ease;
 }
 .stTextInput input:focus, .stTextArea textarea:focus {
     border: 1px solid var(--color-primary) !important;
-    box-shadow: 0 0 0 2px var(--color-primary-focus) !important;
+    box-shadow: 0 0 0 3px var(--color-primary-focus) !important;
+    outline: none !important;
 }
 
-/* 묶음 패널 (그림자 제거, Surface-1 적용) */
+/* 묶음 패널 (부드러운 그림자와 깔끔한 카드 레이아웃) */
 [data-testid="stExpander"], div[data-testid="stContainer"] {
     background-color: var(--color-surface-1) !important;
     border-radius: var(--rounded-lg) !important;
     border: 1px solid var(--color-hairline) !important;
     padding: 24px !important;
-    box-shadow: none !important;
+    box-shadow: var(--shadow-sm) !important;
 }
 [data-testid="stExpander"] * {
     color: var(--color-ink) !important;
@@ -146,7 +151,8 @@ button[kind="secondary"]:hover {
     border-radius: var(--rounded-lg) !important;
     border: 1px solid var(--color-hairline) !important;
     color: var(--color-ink) !important;
-    box-shadow: none !important;
+    box-shadow: var(--shadow-sm) !important;
+    padding: 16px !important;
 }
 
 /* 안내 및 경고 상자 */
@@ -155,28 +161,30 @@ button[kind="secondary"]:hover {
     border: 1px solid var(--color-hairline) !important;
     border-radius: var(--rounded-lg) !important;
     color: var(--color-ink) !important;
-    box-shadow: none !important;
+    box-shadow: var(--shadow-sm) !important;
 }
 
-/* 라벨 텍스트 스타일 */
+/* 라벨 및 보조 텍스트 스타일 */
 label {
     color: var(--color-ink-muted) !important;
     font-weight: 500 !important;
+    font-size: 14px !important;
 }
 
 /* 구분선 */
 hr {
     border-bottom-color: var(--color-hairline) !important;
+    margin: 24px 0 !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🏛️ 인공지능 튜터 (v6.0)")
+st.title("🏛️ 인공지능 튜터 (v7.0)")
 st.markdown("학습 자료를 목차별로 나누어 분석하고, 실전 같은 객관식과 서술형 문제를 풀어보세요.")
 
 # 측면 메뉴: 새로고침
 with st.sidebar:
-    st.markdown("### 현재 판본: v6.0")
+    st.markdown("### 현재 판본: v7.0")
     if st.button("🔄 화면 새로고침", use_container_width=True):
         st.rerun()
 
