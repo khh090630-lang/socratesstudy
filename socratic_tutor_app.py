@@ -179,12 +179,12 @@ hr {
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🏛️ 인공지능 튜터 (v7.0)")
+st.title("🏛️ 인공지능 튜터 (v7.1)")
 st.markdown("학습 자료를 목차별로 나누어 분석하고, 실전 같은 객관식과 서술형 문제를 풀어보세요.")
 
 # 측면 메뉴: 새로고침
 with st.sidebar:
-    st.markdown("### 현재 판본: v7.0")
+    st.markdown("### 현재 판본: v7.1")
     if st.button("🔄 화면 새로고침", use_container_width=True):
         st.rerun()
 
@@ -610,10 +610,25 @@ def process_answer(user_answer, q_data):
 
 # 학습 자료 입력부
 st.subheader("학습 자료 입력 및 목차 추출")
-col_input1, col_input2 = st.columns([2, 1])
 
+# --- v7.1 수정: 예시 파일 다운로드 단추 제공 ---
+example_text = """[예시 지문] 윤동주 - 서시
+
+죽는 날까지 하늘을 우러러
+한 점 부끄럼이 없기를,
+잎새에 이는 바람에도
+나는 괴로워했다.
+별을 노래하는 마음으로
+모든 죽어가는 것을 사랑해야지.
+그리고 나한테 주어진 길을
+걸어가야겠다.
+
+오늘 밤에도 별이 바람에 스치운다."""
+
+col_input1, col_input2 = st.columns([2, 1])
 with col_input1:
     input_type = st.radio("자료 형태", ["글 붙여넣기", "PDF 문서 올리기"], horizontal=True)
+    st.download_button("📄 예시 지문 파일(.txt) 다운로드", data=example_text, file_name="예시지문_서시.txt")
 with col_input2:
     q_type_select = st.radio("출제 유형", ["서술형 (논리적 글쓰기)", "객관식 (5지 선다 추론형)"], horizontal=True)
 
@@ -629,6 +644,11 @@ elif input_type == "PDF 문서 올리기":
             if extracted:
                 context_text += extracted + "\n"
         st.success("문서 글자 추출 완료")
+
+# --- v7.1 수정: 추출/입력된 텍스트 확인 및 수정 영역 복구 ---
+if context_text:
+    with st.expander("📄 입력된 전체 텍스트 확인 및 수정"):
+        context_text = st.text_area("원문 데이터", value=context_text, height=300, label_visibility="collapsed")
 
 if st.button("문서 분석 및 목차 추출", type="primary"):
     if not context_text.strip():
