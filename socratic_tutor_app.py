@@ -8,12 +8,12 @@ import re
 # 화면 및 환경 설정
 st.set_page_config(page_title="인공지능 튜터", page_icon="🏛️", layout="wide")
 
-st.title("🏛️ 인공지능 튜터 (v3.7)")
+st.title("🏛️ 인공지능 튜터 (v3.8)")
 st.markdown("학습 자료를 목차별로 나누어 분석하고, 실전 같은 객관식과 서술형 문제를 풀어보세요.")
 
 # 측면 메뉴: 새로고침
 with st.sidebar:
-    st.markdown("### 현재 판본: v3.7")
+    st.markdown("### 현재 판본: v3.8")
     if st.button("🔄 화면 새로고침", use_container_width=True):
         st.rerun()
 
@@ -229,7 +229,7 @@ def analyze_topics(text):
     with st.spinner("인공지능이 문서의 구조와 지문 제목을 분석하고 있습니다..."):
         sys_instruction = """
         주어진 학습 자료를 분석하여 다음 사항을 추출하라.
-        * document_title: 국어(문학/비문학) 작품, 영어 지문 등 특정 작품이나 출처가 있는 글인 경우 그 제목(예: '윤동주 - 서시')을 추출하라. 특정 작품이 아닌 일반 개념 설명문인 경우 '일반 학습 자료'라고 작성하라.
+        * document_title: 제시된 자료가 문학 작품(시, 소설 등), 비문학 독해 지문, 영어 지문 등 특정한 '본문'을 바탕으로 한다면 그 작품의 제목이나 핵심 소재(예: '윤동주 - 서시', '두 편의 시(길, 장래희망)')를 구체적으로 추출하라. 단순한 이론이나 과학 개념 설명문인 경우에만 '일반 학습 자료'라고 작성하라.
         * topics: 전체 내용을 아우르는 핵심 목차(카테고리) 3~5개를 배열 형태로 추출하라.
         
         반드시 아래 JSON 형식으로 출력하라.
@@ -270,6 +270,7 @@ def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
             type_instruction = """
             [서술형 출제 규칙]
             * 질문: 원리나 이유를 묻는 논리적 서술형 질문 1개 작성.
+            * [발문(질문) 작성 핵심 규칙]: 질문 문장 안에 반드시 대상이 되는 작품명이나 지문의 핵심 소재를 명시할 것. 절대 '이 시에서', '위 지문에서', '두 편의 시를'처럼 모호하게 지칭하지 말 것. (예: "윤동주의 '서시'에서...", "시 '길'과 '장래희망'을 비교할 때...")
             * hint_step1: 모범 답안에 들어갈 핵심 단어 3~4개의 배열.
             * hint_step2: 질문 조건에 맞는 모범 답안 문장에서 주요 명사 4~6개를 밑줄(______)로 완벽히 교체한 문장. 
             * keywords: 정답 채점을 위한 핵심어 배열.
@@ -281,7 +282,7 @@ def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
             반드시 아래의 JSON 형식만 출력한다.
             {
                 "type": "subjective",
-                "question": "서술형 질문 내용",
+                "question": "서술형 질문 내용 (작품명 반드시 포함)",
                 "hint_step1": ["단어1", "단어2", "단어3"],
                 "hint_step2": "_______가 발생하여 _______에 영향을 미치기 때문이다.",
                 "keywords": ["단어1", "단어2", "단어3"]
@@ -291,6 +292,7 @@ def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
             type_instruction = """
             [객관식 출제 규칙]
             * 질문: 단순 암기가 아닌, 본문 내용을 바탕으로 한 추론, 인과관계 파악을 묻는 발문 작성.
+            * [발문(질문) 작성 핵심 규칙]: 질문 문장 안에 반드시 대상이 되는 작품명이나 지문의 핵심 소재를 명시할 것. 절대 '이 시에서', '위 지문에서', '두 편의 시를'처럼 모호하게 지칭하지 말 것. (예: "윤동주의 '서시'에서...", "시 '길'과 '장래희망'을 비교할 때...")
             * options: 1번부터 5번까지의 선택지 내용. 반드시 5개의 독립된 문자열 원소를 가진 배열 형태로 출력할 것. 절대 하나의 문자열 안에 여러 선택지를 뭉쳐서 적지 말 것.
             * answer_key: 정답 선택지의 번호(정수형).
             * hint_step1: 문제를 푸는 데 필요한 핵심 개념 핵심어 2~3개 배열.
@@ -303,7 +305,7 @@ def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
             반드시 아래의 JSON 형식만 출력한다.
             {
                 "type": "multiple_choice",
-                "question": "추론형 객관식 질문 내용",
+                "question": "추론형 객관식 질문 내용 (작품명 반드시 포함)",
                 "options": [
                     "1. 첫 번째 선택지 내용", 
                     "2. 두 번째 선택지 내용", 
@@ -474,7 +476,7 @@ if st.session_state.topics:
     if st.button("🧠 해당 목차로 문제 생성하기"):
         generate_new_question(q_type=q_type_select, mode="initial", topic=selected_topic)
 
-# 문답 진행 및 평가 (화면 분할 제거, 지문 제목 상단 띄움)
+# 문답 진행 및 평가 (지문 제목 상단 띄움)
 if st.session_state.question_data:
     q_data = st.session_state.question_data
     
