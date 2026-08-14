@@ -153,15 +153,21 @@ with st.sidebar:
 # 목차 분석 기능
 def analyze_topics(text):
     with st.spinner("AI가 문서의 구조를 분석하여 목차를 추출하고 있습니다..."):
-        sys_instruction = "주어진 학습 자료를 분석하여 전체 내용을 아우르는 핵심 목차(카테고리) 3~5개를 배열 형태로 추출하라. 반드시 JSON 형식으로 출력하라. 예시: {\"topics\": [\"1. 서론 및 배경\", \"2. 주요 원리\", \"3. 한계점\"]}"
+        sys_instruction = """
+        주어진 학습 자료를 분석하여 전체 내용을 아우르는 핵심 목차(카테고리) 3~5개를 배열 형태로 추출하라. 
+        반드시 JSON 형식으로 출력하라. 
+        [매우 중요] JSON 문법 오류를 방지하기 위해, 추출하는 텍스트 값 내부에 큰따옴표(")나 줄바꿈 문자를 절대 포함하지 마라.
+        예시: {"topics": ["1. 서론 및 배경", "2. 주요 원리", "3. 한계점"]}
+        """
         try:
             response = client.chat.completions.create(
                 model="solar-1-mini-chat",
                 messages=[
                     {"role": "system", "content": sys_instruction},
-                    {"role": "user", "content": text[:15000]}
+                    {"role": "user", "content": text[:12000]}
                 ],
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
+                max_tokens=2048
             )
             raw_content = response.choices[0].message.content.strip()
             raw_content = raw_content.replace("```json", "").replace("```", "")
@@ -171,9 +177,9 @@ def analyze_topics(text):
             st.error(f"목차 추출 오류: {e}")
             return []
 
-# 문제 출제 기능 (목차 지정 추가)
+# 문제 출제 기능
 def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
-    with st.spinner(f"'{topic}' 부분에 집중하여 질 높은 문제를 출제 중입니다..."):
+    with st.spinner(f"'{topic}' 부분에 집중하여 질 높은 문제를 출제 중입니다... (최대 30초 소요)"):
         mode_instruction = f"* 출제 범위: 학습 자료 전체 내용 중 반드시 '{topic}' 카테고리와 관련된 내용을 핵심으로 삼아 출제한다."
         if mode == "similar":
             mode_instruction += f"\n* 이전 질문('{prev_question}')과 유사한 개념을 묻되, 묻는 방식을 바꾼다."
@@ -187,6 +193,10 @@ def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
             * hint_step1: 모범 답안에 들어갈 핵심 단어 3~4개의 배열.
             * hint_step2: 질문 조건에 맞는 모범 답안 문장에서 주요 명사 4~6개를 밑줄(______)로 완벽히 교체한 문장. 
             * keywords: 정답 채점을 위한 핵심어 배열.
+            
+            [매우 중요: JSON 문법 규칙]
+            * 출력하는 텍스트 내부에는 큰따옴표(")를 절대 사용하지 말 것. 필요하다면 작은따옴표(')를 사용할 것.
+            * 중간에 문장이 끊기지 않도록 끝까지 완성할 것.
             
             반드시 아래의 JSON 형식만 출력한다.
             {
@@ -205,6 +215,10 @@ def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
             * answer_key: 정답 선택지의 번호(정수형).
             * hint_step1: 문제를 푸는 데 필요한 핵심 개념 키워드 2~3개 배열.
             * hint_step2: 직접적인 정답이 아닌, 추론의 방향을 잡아주는 짧은 조언.
+            
+            [매우 중요: JSON 문법 규칙]
+            * 출력하는 텍스트 내부에는 큰따옴표(")를 절대 사용하지 말 것. 필요하다면 작은따옴표(')를 사용할 것.
+            * 중간에 문장이 끊기지 않도록 끝까지 완성할 것.
             
             반드시 아래의 JSON 형식만 출력한다.
             {
@@ -225,7 +239,7 @@ def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
         {type_instruction}
         """
         
-        safe_context = st.session_state.context_data[:15000]
+        safe_context = st.session_state.context_data[:12000]
         user_content = f"[학습 자료 내용]\n{safe_context}"
         
         try:
@@ -235,7 +249,8 @@ def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
                     {"role": "system", "content": system_instruction},
                     {"role": "user", "content": user_content}
                 ],
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
+                max_tokens=2048
             )
             
             raw_content = response.choices[0].message.content.strip()
@@ -283,7 +298,8 @@ def process_answer(user_answer, q_data):
             try:
                 feedback_response = client.chat.completions.create(
                     model="solar-1-mini-chat",
-                    messages=api_messages
+                    messages=api_messages,
+                    max_tokens=2048
                 )
                 feedback_text = feedback_response.choices[0].message.content
                 st.markdown(feedback_text)
