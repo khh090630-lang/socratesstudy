@@ -14,36 +14,28 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Surface */
   --color-canvas: #fafafa;
   --color-surface-1: #ffffff;
   --color-surface-2: #f3f4f6;
   --color-hairline: #e5e7eb;
   --color-hairline-strong: #d1d5db;
-  
-  /* Brand Accent (Sleek Dark Slate) */
   --color-primary: #0f172a;
   --color-primary-hover: #1e293b;
   --color-primary-focus: rgba(15, 23, 42, 0.15);
-  
-  /* Typography Colors */
   --color-ink: #111827;
   --color-ink-muted: #374151;
   --color-ink-subtle: #6b7280;
   
-  /* Border Radius */
   --rounded-xs: 4px;
   --rounded-sm: 6px;
   --rounded-md: 8px;
   --rounded-lg: 12px;
   --rounded-xl: 16px;
   
-  /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* 기본 글꼴 강제 설정 및 전체 배경 */
 html, body, [class*="css"] {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif !important;
     color: var(--color-ink) !important;
@@ -55,7 +47,6 @@ html, body, [class*="css"] {
     background-color: var(--color-canvas) !important;
 }
 
-/* 측면 메뉴 배경 */
 [data-testid="stSidebar"] {
     background-color: var(--color-surface-2) !important;
     border-right: 1px solid var(--color-hairline) !important;
@@ -65,7 +56,6 @@ html, body, [class*="css"] {
     text-shadow: none !important;
 }
 
-/* 제목 꾸밈 (깔끔하고 단단하게) */
 h1, h2, h3, h4, h5, h6 {
     color: var(--color-ink) !important;
     font-weight: 700 !important;
@@ -74,7 +64,6 @@ h1, h2, h3, h4, h5, h6 {
     text-shadow: none !important;
 }
 
-/* 정답 제출 등 주요 액션 단추 (시크한 다크 슬레이트) */
 button[kind="primary"] {
     background-color: var(--color-primary) !important;
     color: #ffffff !important;
@@ -91,7 +80,6 @@ button[kind="primary"]:active, button[kind="primary"]:hover {
     transform: translateY(-1px);
 }
 
-/* 보조 단추 (흰색 바탕, 옅은 테두리) */
 button[kind="secondary"] {
     background-color: var(--color-surface-1) !important;
     color: var(--color-ink) !important;
@@ -107,7 +95,6 @@ button[kind="secondary"]:hover {
     border: 1px solid #9ca3af !important;
 }
 
-/* 입력창 및 패널 */
 .stTextInput input, .stTextArea textarea, [data-testid="stSelectbox"] div[data-baseweb="select"] {
     background-color: var(--color-surface-1) !important;
     border: 1px solid var(--color-hairline-strong) !important;
@@ -123,7 +110,6 @@ button[kind="secondary"]:hover {
     outline: none !important;
 }
 
-/* 묶음 패널 (부드러운 그림자와 깔끔한 카드 레이아웃) */
 [data-testid="stExpander"], div[data-testid="stContainer"] {
     background-color: var(--color-surface-1) !important;
     border-radius: var(--rounded-lg) !important;
@@ -135,17 +121,35 @@ button[kind="secondary"]:hover {
     color: var(--color-ink) !important;
 }
 
-/* 측면 메뉴 내 묶음 패널 예외 처리 */
-[data-testid="stSidebar"] [data-testid="stExpander"] {
-    background-color: transparent !important;
-    border: none !important;
-    border-bottom: 1px solid var(--color-hairline) !important;
-    border-radius: 0 !important;
-    padding: 12px 0 !important;
-    box-shadow: none !important;
+/* 대시보드 통계 위젯(Metric) 꾸밈 */
+[data-testid="stMetric"] {
+    background-color: var(--color-surface-1) !important;
+    border: 1px solid var(--color-hairline) !important;
+    border-radius: var(--rounded-lg) !important;
+    padding: 20px !important;
+    box-shadow: var(--shadow-sm) !important;
 }
 
-/* 채팅창 말풍선 */
+/* 탭(Tabs) 세련된 스타일링 */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.stTabs [data-baseweb="tab"] {
+    padding: 10px 20px;
+    border-radius: var(--rounded-md);
+    background-color: var(--color-surface-1);
+    border: 1px solid var(--color-hairline);
+    box-shadow: var(--shadow-sm);
+    font-weight: 600 !important;
+    color: var(--color-ink-muted) !important;
+}
+.stTabs [aria-selected="true"] {
+    background-color: var(--color-primary) !important;
+    color: white !important;
+    border-color: var(--color-primary) !important;
+}
+
 .stChatMessage {
     background-color: var(--color-surface-1) !important;
     border-radius: var(--rounded-lg) !important;
@@ -155,7 +159,6 @@ button[kind="secondary"]:hover {
     padding: 16px !important;
 }
 
-/* 안내 및 경고 상자 */
 .stAlert {
     background-color: var(--color-surface-1) !important;
     border: 1px solid var(--color-hairline) !important;
@@ -164,14 +167,12 @@ button[kind="secondary"]:hover {
     box-shadow: var(--shadow-sm) !important;
 }
 
-/* 라벨 및 보조 텍스트 스타일 */
 label {
     color: var(--color-ink-muted) !important;
     font-weight: 500 !important;
     font-size: 14px !important;
 }
 
-/* 구분선 */
 hr {
     border-bottom-color: var(--color-hairline) !important;
     margin: 24px 0 !important;
@@ -179,14 +180,7 @@ hr {
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🏛️ 인공지능 튜터 (v7.1)")
-st.markdown("학습 자료를 목차별로 나누어 분석하고, 실전 같은 객관식과 서술형 문제를 풀어보세요.")
-
-# 측면 메뉴: 새로고침
-with st.sidebar:
-    st.markdown("### 현재 판본: v7.1")
-    if st.button("🔄 화면 새로고침", use_container_width=True):
-        st.rerun()
+st.title("🏛️ 인공지능 튜터 (v8.0)")
 
 # 서버 비밀 금고에서 열쇠 꺼내기
 try:
@@ -255,7 +249,21 @@ if st.session_state.user is None:
                 st.error(f"가입 실패: {e}")
     st.stop()
 
-# 기록에서 문제와 선택지를 분리해내는 해독 함수
+# 측면 메뉴 (프로필 및 간소화)
+with st.sidebar:
+    user_name = st.session_state.user.email.split('@')[0]
+    st.markdown(f"### 👋 안녕하세요, {user_name}님")
+    st.caption(f"{st.session_state.user.email}")
+    st.divider()
+    if st.button("로그아웃", use_container_width=True):
+        st.session_state.user = None
+        supabase.auth.sign_out()
+        st.rerun()
+    st.divider()
+    st.caption("현재 판본: v8.0 (대시보드 통합)")
+
+# --- 공통 함수 ---
+
 def parse_history_question(raw_text):
     match = re.search(r'\n\s*1\.', raw_text)
     if match:
@@ -266,136 +274,27 @@ def parse_history_question(raw_text):
         return "multiple_choice", q_text, opts
     return "subjective", raw_text, []
 
-# 삭제 기능 함수
 def delete_record(record_id):
     try:
         supabase.table("qa_history").delete().eq("id", record_id).execute()
+        st.toast("기록이 성공적으로 삭제되었습니다.")
     except Exception as e:
-        st.sidebar.error(f"삭제 오류: {e}")
+        st.error(f"삭제 오류: {e}")
 
 def delete_all_by_result(result_type):
     try:
         supabase.table("qa_history").delete().eq("user_id", st.session_state.user.id).eq("result", result_type).execute()
+        st.toast(f"{result_type} 기록이 모두 삭제되었습니다.")
     except Exception as e:
-        st.sidebar.error(f"삭제 오류: {e}")
+        st.error(f"삭제 오류: {e}")
 
-# 로그아웃 및 오답 노트 불러오기
-with st.sidebar:
-    st.divider()
-    st.write(f"👤 **{st.session_state.user.email}**님 접속 중")
-    if st.button("로그아웃", use_container_width=True):
-        st.session_state.user = None
-        supabase.auth.sign_out()
-        st.rerun()
-        
-    st.divider()
-    st.header("나의 학습 기록")
-    
-    try:
-        db_response = supabase.table("qa_history").select("*").eq("user_id", st.session_state.user.id).order("created_at", desc=True).execute()
-        qa_history = db_response.data
-    except Exception as e:
-        st.error(f"기록을 불러오지 못했습니다: {e}")
-        qa_history = []
-        
-    if not qa_history:
-        st.info("아직 풀이한 문제가 없습니다.")
-    else:
-        correct_list = [item for item in qa_history if item['result'] == "정답"]
-        partial_list = [item for item in qa_history if item['result'] == "부분점수"]
-        incorrect_list = [item for item in qa_history if item['result'] == "오답"]
-        
-        with st.expander(f"🟢 정답 ({len(correct_list)}개)"):
-            if correct_list:
-                if st.button("정답 기록 모두 삭제", key="del_all_correct", use_container_width=True):
-                    delete_all_by_result("정답")
-                    st.rerun()
-                st.divider()
-            for item in correct_list:
-                display_q = item['question'].split('\n')[0]
-                col1, col2 = st.columns([5, 1])
-                with col1:
-                    if st.button(f"Q: {display_q}", key=f"retry_correct_{item['id']}", use_container_width=True):
-                        q_type, q_text, q_opts = parse_history_question(item['question'])
-                        st.session_state.question_data = {
-                            "type": q_type,
-                            "is_retry": True,
-                            "question": q_text,
-                            "options": q_opts,
-                            "keywords": ["(인공지능이 문맥을 파악하여 자동 채점합니다)"],
-                            "hint_step1": ["복습 모드에서는 힌트가 제공되지 않습니다."],
-                            "hint_step2": "이전에 정답을 맞혔던 문제입니다. 기억을 되살려 다시 완벽하게 풀어보세요!"
-                        }
-                        st.session_state.messages = []
-                        st.session_state.first_attempt_saved = False
-                        st.session_state.is_correct = False
-                        st.rerun()
-                with col2:
-                    if st.button("삭제", key=f"del_btn_correct_{item['id']}"):
-                        delete_record(item['id'])
-                        st.rerun()
-                
-        with st.expander(f"🟡 부분점수 ({len(partial_list)}개)"):
-            if partial_list:
-                if st.button("부분점수 기록 모두 삭제", key="del_all_partial", use_container_width=True):
-                    delete_all_by_result("부분점수")
-                    st.rerun()
-                st.divider()
-            for item in partial_list:
-                display_q = item['question'].split('\n')[0]
-                col1, col2 = st.columns([5, 1])
-                with col1:
-                    if st.button(f"Q: {display_q}", key=f"retry_partial_{item['id']}", use_container_width=True):
-                        q_type, q_text, q_opts = parse_history_question(item['question'])
-                        st.session_state.question_data = {
-                            "type": q_type,
-                            "is_retry": True,
-                            "question": q_text,
-                            "options": q_opts,
-                            "keywords": ["(인공지능이 문맥을 파악하여 자동 채점합니다)"],
-                            "hint_step1": ["복습 모드에서는 힌트가 제공되지 않습니다."],
-                            "hint_step2": "이전에 아쉽게 부분 점수를 받았던 문제입니다. 완벽한 답을 적어보세요!"
-                        }
-                        st.session_state.messages = []
-                        st.session_state.first_attempt_saved = False
-                        st.session_state.is_correct = False
-                        st.rerun()
-                with col2:
-                    if st.button("삭제", key=f"del_btn_partial_{item['id']}"):
-                        delete_record(item['id'])
-                        st.rerun()
-                
-        with st.expander(f"🔴 오답 ({len(incorrect_list)}개)"):
-            if incorrect_list:
-                if st.button("오답 기록 모두 삭제", key="del_all_incorrect", use_container_width=True):
-                    delete_all_by_result("오답")
-                    st.rerun()
-                st.divider()
-            for item in incorrect_list:
-                display_q = item['question'].split('\n')[0]
-                col1, col2 = st.columns([5, 1])
-                with col1:
-                    if st.button(f"Q: {display_q}", key=f"retry_wrong_{item['id']}", use_container_width=True):
-                        q_type, q_text, q_opts = parse_history_question(item['question'])
-                        st.session_state.question_data = {
-                            "type": q_type,
-                            "is_retry": True,
-                            "question": q_text,
-                            "options": q_opts,
-                            "keywords": ["(인공지능이 문맥을 파악하여 자동 채점합니다)"],
-                            "hint_step1": ["복습 모드에서는 힌트가 제공되지 않습니다."],
-                            "hint_step2": "이전에 틀렸던 문제입니다. 배운 내용을 적용하여 다시 도전해 보세요!"
-                        }
-                        st.session_state.messages = []
-                        st.session_state.first_attempt_saved = False
-                        st.session_state.is_correct = False
-                        st.rerun()
-                with col2:
-                    if st.button("삭제", key=f"del_btn_wrong_{item['id']}"):
-                        delete_record(item['id'])
-                        st.rerun()
+def reset_learning_state():
+    """문제 풀이 상태를 초기화하고 대시보드로 돌아가는 함수"""
+    st.session_state.question_data = None
+    st.session_state.messages = []
+    st.session_state.first_attempt_saved = False
+    st.session_state.is_correct = False
 
-# 목차 및 지문 제목 분석 기능
 def analyze_topics(text):
     with st.spinner("문서의 구조와 지문 제목을 분석하고 있습니다..."):
         sys_instruction = """
@@ -416,22 +315,17 @@ def analyze_topics(text):
         try:
             response = client.chat.completions.create(
                 model="solar-1-mini-chat",
-                messages=[
-                    {"role": "system", "content": sys_instruction},
-                    {"role": "user", "content": text[:12000]}
-                ],
+                messages=[{"role": "system", "content": sys_instruction}, {"role": "user", "content": text[:12000]}],
                 response_format={"type": "json_object"},
                 max_tokens=2048
             )
-            raw_content = response.choices[0].message.content.strip()
-            raw_content = raw_content.replace("```json", "").replace("```", "")
+            raw_content = response.choices[0].message.content.strip().replace("```json", "").replace("```", "")
             result = json.loads(raw_content, strict=False)
             return result.get("document_title", "일반 학습 자료"), result.get("topics", [])
         except Exception as e:
             st.error(f"분석 오류: {e}")
             return "일반 학습 자료", []
 
-# 문제 출제 기능
 def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
     with st.spinner(f"'{topic}' 부분에 집중하여 문제를 출제 중입니다..."):
         mode_instruction = f"* 출제 범위: 학습 자료 전체 내용 중 반드시 '{topic}' 카테고리와 관련된 내용을 핵심으로 삼아 출제한다."
@@ -481,11 +375,7 @@ def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
                 "type": "multiple_choice",
                 "question": "추론형 객관식 질문 내용 (작품명 반드시 포함)",
                 "options": [
-                    "1. 첫 번째 선택지 내용", 
-                    "2. 두 번째 선택지 내용", 
-                    "3. 세 번째 선택지 내용", 
-                    "4. 네 번째 선택지 내용", 
-                    "5. 다섯 번째 선택지 내용"
+                    "1. 첫 번째 선택지 내용", "2. 두 번째 선택지 내용", "3. 세 번째 선택지 내용", "4. 네 번째 선택지 내용", "5. 다섯 번째 선택지 내용"
                 ],
                 "answer_key": 3,
                 "hint_step1": ["개념1", "개념2"],
@@ -494,55 +384,38 @@ def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
             }
             """
             
-        system_instruction = f"""
-        당신은 학습 자료를 바탕으로 학생의 사고력을 기르는 출제자이다.
-        아래의 규칙에 따라 문제를 생성한다.
-        {mode_instruction}
-        {type_instruction}
-        """
-        
+        system_instruction = f"당신은 학습 자료를 바탕으로 학생의 사고력을 기르는 출제자이다.\n아래의 규칙에 따라 문제를 생성한다.\n{mode_instruction}\n{type_instruction}"
         safe_context = st.session_state.context_data[:12000]
         user_content = f"[학습 자료 내용]\n{safe_context}"
         
         try:
             response = client.chat.completions.create(
                 model="solar-1-mini-chat",
-                messages=[
-                    {"role": "system", "content": system_instruction},
-                    {"role": "user", "content": user_content}
-                ],
+                messages=[{"role": "system", "content": system_instruction}, {"role": "user", "content": user_content}],
                 response_format={"type": "json_object"},
                 max_tokens=2048
             )
-            
-            raw_content = response.choices[0].message.content.strip()
-            raw_content = raw_content.replace("```json", "").replace("```", "")
-            result = json.loads(raw_content, strict=False)
-            
-            st.session_state.question_data = result
+            raw_content = response.choices[0].message.content.strip().replace("```json", "").replace("```", "")
+            st.session_state.question_data = json.loads(raw_content, strict=False)
             st.session_state.messages = [] 
             st.session_state.first_attempt_saved = False
             st.session_state.is_correct = False
             st.rerun()
-            
         except Exception as e:
             st.error(f"연결 오류가 발생했습니다. (상세 오류: {e})")
 
-# 답변 처리 및 튜터 평가 기능
 def process_answer(user_answer, q_data):
     st.session_state.messages.append({"role": "user", "content": user_answer})
-    
     with st.chat_message("user"):
         st.markdown(user_answer)
         
     with st.chat_message("assistant"):
         with st.spinner("튜터가 답변을 읽고 생각 중입니다..."):
-            
             if q_data.get('type') == 'multiple_choice':
                 eval_rules = """
                 [평가 규칙]
                 * 사용자의 최근 답변이 정답인지 파악한다. 객관식은 번호나 내용만 말해도 인정한다.
-                * 객관식 문제이므로 첫 줄에 반드시 **[평가 결과: 정답]**, **[평가 결과: 오답]** 중 하나만 출력한다. (부분점수는 절대 부여하지 않는다. 정답이 아니면 무조건 오답이다.)
+                * 객관식 문제이므로 첫 줄에 반드시 **[평가 결과: 정답]**, **[평가 결과: 오답]** 중 하나만 출력한다. (부분점수는 절대 부여하지 않는다.)
                 * [정답]인 경우: 해설 후 대화를 마무리한다.
                 * [오답]인 경우: 정답을 직접 주지 말고, 스스로 깨달을 수 있는 꼬리 질문을 던진다.
                 """
@@ -557,13 +430,11 @@ def process_answer(user_answer, q_data):
                 
             eval_sys_instruction = f"""
             당신은 학생의 사고력을 길러주는 튜터이다.
-            
             [문제 정보]
             문제 유형: {q_data.get('type')}
             질문: {q_data['question']}
             객관식 선지: {q_data.get('options', '없음')}
             정답 기준: {q_data.get('answer_key', q_data.get('keywords', '인공지능이 문맥 파악'))}
-            
             {eval_rules}
             """
             
@@ -591,7 +462,6 @@ def process_answer(user_answer, q_data):
                     save_q = q_data['question']
                     if q_data.get('type') == 'multiple_choice':
                         save_q += "\n" + "\n".join(q_data.get('options', []))
-                        
                     try:
                         supabase.table("qa_history").insert({
                             "user_id": st.session_state.user.id,
@@ -603,78 +473,190 @@ def process_answer(user_answer, q_data):
                         st.session_state.first_attempt_saved = True
                     except Exception as db_err:
                         st.error(f"기록 저장 중 오류: {db_err}")
-                        
                 st.rerun()
             except Exception as e:
                 st.error(f"통신 오류가 발생했습니다: {e}")
 
-# 학습 자료 입력부
-st.subheader("학습 자료 입력 및 목차 추출")
+# --- DB 내역 불러오기 ---
+try:
+    db_response = supabase.table("qa_history").select("*").eq("user_id", st.session_state.user.id).order("created_at", desc=True).execute()
+    qa_history = db_response.data
+except Exception as e:
+    st.error(f"기록을 불러오지 못했습니다: {e}")
+    qa_history = []
 
-# --- v7.1 수정: 예시 파일 다운로드 단추 제공 ---
-example_text = """[예시 지문] 윤동주 - 서시
+correct_list = [item for item in qa_history if item['result'] == "정답"]
+partial_list = [item for item in qa_history if item['result'] == "부분점수"]
+incorrect_list = [item for item in qa_history if item['result'] == "오답"]
 
-죽는 날까지 하늘을 우러러
-한 점 부끄럼이 없기를,
-잎새에 이는 바람에도
-나는 괴로워했다.
-별을 노래하는 마음으로
-모든 죽어가는 것을 사랑해야지.
-그리고 나한테 주어진 길을
-걸어가야겠다.
-
-오늘 밤에도 별이 바람에 스치운다."""
-
-col_input1, col_input2 = st.columns([2, 1])
-with col_input1:
-    input_type = st.radio("자료 형태", ["글 붙여넣기", "PDF 문서 올리기"], horizontal=True)
-    st.download_button("📄 예시 지문 파일(.txt) 다운로드", data=example_text, file_name="예시지문_서시.txt")
-with col_input2:
-    q_type_select = st.radio("출제 유형", ["서술형 (논리적 글쓰기)", "객관식 (5지 선다 추론형)"], horizontal=True)
-
-context_text = ""
-if input_type == "글 붙여넣기":
-    context_text = st.text_area("공부한 개념이나 글을 붙여넣으세요", height=150)
-elif input_type == "PDF 문서 올리기":
-    uploaded_pdf = st.file_uploader("PDF 문서를 올리세요", type=["pdf"])
-    if uploaded_pdf:
-        reader = PdfReader(uploaded_pdf)
-        for page in reader.pages:
-            extracted = page.extract_text()
-            if extracted:
-                context_text += extracted + "\n"
-        st.success("문서 글자 추출 완료")
-
-# --- v7.1 수정: 추출/입력된 텍스트 확인 및 수정 영역 복구 ---
-if context_text:
-    with st.expander("📄 입력된 전체 텍스트 확인 및 수정"):
-        context_text = st.text_area("원문 데이터", value=context_text, height=300, label_visibility="collapsed")
-
-if st.button("문서 분석 및 목차 추출", type="primary"):
-    if not context_text.strip():
-        st.error("학습 자료를 먼저 입력해야 합니다.")
-    else:
-        st.session_state.context_data = context_text
-        doc_title, doc_topics = analyze_topics(context_text)
-        st.session_state.document_title = doc_title
-        st.session_state.topics = doc_topics
-
-# 목차가 추출되었을 때 선택 기능 제공
-if st.session_state.topics:
-    st.divider()
-    selected_topic = st.selectbox("어떤 부분의 문제를 풀어볼까요?", st.session_state.topics)
+# --- 메인 화면 렌더링 분기 ---
+if st.session_state.question_data is None:
+    # 1. 대시보드 / 학습 / 관리 탭 모드
+    tab_dash, tab_learn, tab_review = st.tabs(["📊 대시보드", "📖 새로운 학습", "📝 오답 노트"])
     
-    if st.button("해당 목차로 문제 생성하기"):
-        generate_new_question(q_type=q_type_select, mode="initial", topic=selected_topic)
+    # 탭 1: 대시보드
+    with tab_dash:
+        st.subheader("나의 학습 현황 요약")
+        
+        total_q = len(qa_history)
+        correct_n = len(correct_list)
+        partial_n = len(partial_list)
+        wrong_n = len(incorrect_list)
+        accuracy = (correct_n / total_q * 100) if total_q > 0 else 0
+        
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("총 학습 문제", f"{total_q}개")
+        col2.metric("정답률", f"{accuracy:.1f}%")
+        col3.metric("완벽한 정답", f"{correct_n}개")
+        col4.metric("복습 필요 (오답/부분)", f"{partial_n + wrong_n}개")
+        
+        st.divider()
+        if total_q == 0:
+            st.info("아직 학습 기록이 없습니다. '새로운 학습' 탭에서 첫 문제를 풀어보세요!")
+        else:
+            st.markdown("#### 최근 푼 문제")
+            for item in qa_history[:5]:
+                with st.container(border=True):
+                    res_emoji = "🟢" if item['result'] == "정답" else ("🟡" if item['result'] == "부분점수" else "🔴")
+                    display_q = item['question'].split('\n')[0]
+                    st.markdown(f"**{res_emoji} {item['result']}** | {display_q}")
+                    
+    # 탭 2: 새로운 학습
+    with tab_learn:
+        example_text = """[예시 지문] 윤동주 - 서시\n\n죽는 날까지 하늘을 우러러\n한 점 부끄럼이 없기를,\n잎새에 이는 바람에도\n나는 괴로워했다.\n별을 노래하는 마음으로\n모든 죽어가는 것을 사랑해야지.\n그리고 나한테 주어진 길을\n걸어가야겠다.\n\n오늘 밤에도 별이 바람에 스치운다."""
+        
+        col_input1, col_input2 = st.columns([2, 1])
+        with col_input1:
+            input_type = st.radio("자료 형태", ["글 붙여넣기", "PDF 문서 올리기"], horizontal=True)
+            st.download_button("📄 예시 지문 파일(.txt) 다운로드", data=example_text, file_name="예시지문_서시.txt")
+        with col_input2:
+            q_type_select = st.radio("출제 유형", ["서술형 (논리적 글쓰기)", "객관식 (5지 선다 추론형)"], horizontal=True)
+        
+        context_text = ""
+        if input_type == "글 붙여넣기":
+            context_text = st.text_area("공부한 개념이나 글을 붙여넣으세요", height=150)
+        elif input_type == "PDF 문서 올리기":
+            uploaded_pdf = st.file_uploader("PDF 문서를 올리세요", type=["pdf"])
+            if uploaded_pdf:
+                reader = PdfReader(uploaded_pdf)
+                for page in reader.pages:
+                    extracted = page.extract_text()
+                    if extracted:
+                        context_text += extracted + "\n"
+                st.success("문서 글자 추출 완료")
+        
+        if context_text:
+            with st.expander("📄 입력된 전체 텍스트 확인 및 수정"):
+                context_text = st.text_area("원문 데이터", value=context_text, height=300, label_visibility="collapsed")
+        
+        if st.button("문서 분석 및 목차 추출", type="primary"):
+            if not context_text.strip():
+                st.error("학습 자료를 먼저 입력해야 합니다.")
+            else:
+                st.session_state.context_data = context_text
+                doc_title, doc_topics = analyze_topics(context_text)
+                st.session_state.document_title = doc_title
+                st.session_state.topics = doc_topics
+        
+        if st.session_state.topics:
+            st.divider()
+            selected_topic = st.selectbox("어떤 부분의 문제를 풀어볼까요?", st.session_state.topics)
+            if st.button("해당 목차로 문제 생성하기", type="primary"):
+                generate_new_question(q_type=q_type_select, mode="initial", topic=selected_topic)
 
-# 문답 진행 및 평가
-if st.session_state.question_data:
+    # 탭 3: 오답 노트 (기존 측면 메뉴에서 이동)
+    with tab_review:
+        if total_q == 0:
+            st.info("아직 풀이한 문제가 없습니다.")
+        else:
+            with st.expander(f"🟢 정답 ({len(correct_list)}개)", expanded=False):
+                if correct_list:
+                    if st.button("정답 기록 모두 삭제", key="del_all_correct", use_container_width=True):
+                        delete_all_by_result("정답")
+                        st.rerun()
+                    st.divider()
+                for item in correct_list:
+                    display_q = item['question'].split('\n')[0]
+                    col1, col2 = st.columns([7, 1])
+                    with col1:
+                        if st.button(f"Q: {display_q}", key=f"retry_correct_{item['id']}", use_container_width=True):
+                            q_type, q_text, q_opts = parse_history_question(item['question'])
+                            st.session_state.question_data = {
+                                "type": q_type, "is_retry": True, "question": q_text, "options": q_opts,
+                                "keywords": ["(인공지능이 채점합니다)"], "hint_step1": ["복습 모드에서는 제공되지 않습니다."], "hint_step2": "기억을 되살려 다시 완벽하게 풀어보세요!"
+                            }
+                            st.session_state.messages = []
+                            st.session_state.first_attempt_saved = False
+                            st.session_state.is_correct = False
+                            st.rerun()
+                    with col2:
+                        if st.button("삭제", key=f"del_btn_correct_{item['id']}"):
+                            delete_record(item['id'])
+                            st.rerun()
+                    
+            with st.expander(f"🟡 부분점수 ({len(partial_list)}개)", expanded=True):
+                if partial_list:
+                    if st.button("부분점수 기록 모두 삭제", key="del_all_partial", use_container_width=True):
+                        delete_all_by_result("부분점수")
+                        st.rerun()
+                    st.divider()
+                for item in partial_list:
+                    display_q = item['question'].split('\n')[0]
+                    col1, col2 = st.columns([7, 1])
+                    with col1:
+                        if st.button(f"Q: {display_q}", key=f"retry_partial_{item['id']}", use_container_width=True):
+                            q_type, q_text, q_opts = parse_history_question(item['question'])
+                            st.session_state.question_data = {
+                                "type": q_type, "is_retry": True, "question": q_text, "options": q_opts,
+                                "keywords": ["(인공지능이 채점합니다)"], "hint_step1": ["복습 모드에서는 제공되지 않습니다."], "hint_step2": "아쉽게 부분 점수를 받았던 문제입니다. 완벽한 답을 적어보세요!"
+                            }
+                            st.session_state.messages = []
+                            st.session_state.first_attempt_saved = False
+                            st.session_state.is_correct = False
+                            st.rerun()
+                    with col2:
+                        if st.button("삭제", key=f"del_btn_partial_{item['id']}"):
+                            delete_record(item['id'])
+                            st.rerun()
+                    
+            with st.expander(f"🔴 오답 ({len(incorrect_list)}개)", expanded=True):
+                if incorrect_list:
+                    if st.button("오답 기록 모두 삭제", key="del_all_incorrect", use_container_width=True):
+                        delete_all_by_result("오답")
+                        st.rerun()
+                    st.divider()
+                for item in incorrect_list:
+                    display_q = item['question'].split('\n')[0]
+                    col1, col2 = st.columns([7, 1])
+                    with col1:
+                        if st.button(f"Q: {display_q}", key=f"retry_wrong_{item['id']}", use_container_width=True):
+                            q_type, q_text, q_opts = parse_history_question(item['question'])
+                            st.session_state.question_data = {
+                                "type": q_type, "is_retry": True, "question": q_text, "options": q_opts,
+                                "keywords": ["(인공지능이 채점합니다)"], "hint_step1": ["복습 모드에서는 제공되지 않습니다."], "hint_step2": "이전에 틀렸던 문제입니다. 다시 도전해 보세요!"
+                            }
+                            st.session_state.messages = []
+                            st.session_state.first_attempt_saved = False
+                            st.session_state.is_correct = False
+                            st.rerun()
+                    with col2:
+                        if st.button("삭제", key=f"del_btn_wrong_{item['id']}"):
+                            delete_record(item['id'])
+                            st.rerun()
+
+else:
+    # 2. 문제 풀이 튜터링 모드 (탭 화면을 숨기고 튜터링 집중)
     q_data = st.session_state.question_data
     
+    col_title, col_btn = st.columns([4, 1])
+    with col_title:
+        st.subheader("개념 검증 문답")
+    with col_btn:
+        if st.button("🏠 대시보드로 돌아가기", use_container_width=True):
+            reset_learning_state()
+            st.rerun()
     st.divider()
-    st.subheader("개념 검증 문답")
-    
-    # 지문의 출처/제목 띄움
+
     if st.session_state.document_title and st.session_state.document_title != "일반 학습 자료":
         st.info(f"분석된 지문 출처/제목: {st.session_state.document_title}")
     
@@ -694,7 +676,6 @@ if st.session_state.question_data:
             st.write(q_data.get('hint_step2', "힌트가 제공되지 않는 모드입니다."))
 
     if q_data.get('type') == 'multiple_choice' and not st.session_state.first_attempt_saved:
-        
         raw_options = q_data.get('options', [])
         cleaned_options = []
         for opt in raw_options:
@@ -727,11 +708,11 @@ if st.session_state.question_data:
         
         with col_next1:
             if st.button("현재 목차에서 다른 문제 다시 풀기", use_container_width=True):
-                generate_new_question(q_type=q_type_select, mode="similar", prev_question=q_data['question'], topic=st.session_state.get('selected_topic', ''))
+                generate_new_question(q_type="서술형 (논리적 글쓰기)" if q_data.get('type')=='subjective' else "객관식 (5지 선다 추론형)", mode="similar", prev_question=q_data['question'], topic=st.session_state.get('selected_topic', ''))
                 
         with col_next2:
             if st.button("현재 목차에서 새로운 개념 문제 풀기", use_container_width=True):
-                generate_new_question(q_type=q_type_select, mode="new", prev_question=q_data['question'], topic=st.session_state.get('selected_topic', ''))
+                generate_new_question(q_type="서술형 (논리적 글쓰기)" if q_data.get('type')=='subjective' else "객관식 (5지 선다 추론형)", mode="new", prev_question=q_data['question'], topic=st.session_state.get('selected_topic', ''))
 
     if not st.session_state.is_correct:
         if q_data.get('type') != 'multiple_choice' or st.session_state.first_attempt_saved:
