@@ -8,12 +8,12 @@ import re
 # 화면 및 환경 설정
 st.set_page_config(page_title="인공지능 튜터", page_icon="🏛️", layout="wide")
 
-st.title("🏛️ 인공지능 튜터 (v3.6)")
+st.title("🏛️ 인공지능 튜터 (v3.7)")
 st.markdown("학습 자료를 목차별로 나누어 분석하고, 실전 같은 객관식과 서술형 문제를 풀어보세요.")
 
 # 측면 메뉴: 새로고침
 with st.sidebar:
-    st.markdown("### 현재 판본: v3.6")
+    st.markdown("### 현재 판본: v3.7")
     if st.button("🔄 화면 새로고침", use_container_width=True):
         st.rerun()
 
@@ -48,6 +48,8 @@ if "context_data" not in st.session_state:
     st.session_state.context_data = ""
 if "topics" not in st.session_state:
     st.session_state.topics = []
+if "document_title" not in st.session_state:
+    st.session_state.document_title = ""
 if "first_attempt_saved" not in st.session_state:
     st.session_state.first_attempt_saved = False
 if "is_correct" not in st.session_state:
@@ -222,14 +224,20 @@ with st.sidebar:
                         delete_record(item['id'])
                         st.rerun()
 
-# 목차 분석 기능
+# 목차 및 지문 제목 분석 기능
 def analyze_topics(text):
-    with st.spinner("인공지능이 문서의 구조를 분석하여 목차를 추출하고 있습니다..."):
+    with st.spinner("인공지능이 문서의 구조와 지문 제목을 분석하고 있습니다..."):
         sys_instruction = """
-        주어진 학습 자료를 분석하여 전체 내용을 아우르는 핵심 목차(카테고리) 3~5개를 배열 형태로 추출하라. 
-        반드시 JSON 형식으로 출력하라. 
+        주어진 학습 자료를 분석하여 다음 사항을 추출하라.
+        * document_title: 국어(문학/비문학) 작품, 영어 지문 등 특정 작품이나 출처가 있는 글인 경우 그 제목(예: '윤동주 - 서시')을 추출하라. 특정 작품이 아닌 일반 개념 설명문인 경우 '일반 학습 자료'라고 작성하라.
+        * topics: 전체 내용을 아우르는 핵심 목차(카테고리) 3~5개를 배열 형태로 추출하라.
+        
+        반드시 아래 JSON 형식으로 출력하라.
+        {
+            "document_title": "작품 제목 또는 일반 학습 자료",
+            "topics": ["서론 및 배경", "주요 원리", "한계점"]
+        }
         [매우 중요] JSON 문법 오류를 방지하기 위해, 추출하는 텍스트 값 내부에 큰따옴표(")나 줄바꿈 문자를 절대 포함하지 마라.
-        예시: {"topics": ["1. 서론 및 배경", "2. 주요 원리", "3. 한계점"]}
         """
         try:
             response = client.chat.completions.create(
@@ -244,10 +252,10 @@ def analyze_topics(text):
             raw_content = response.choices[0].message.content.strip()
             raw_content = raw_content.replace("```json", "").replace("```", "")
             result = json.loads(raw_content, strict=False)
-            return result.get("topics", [])
+            return result.get("document_title", "일반 학습 자료"), result.get("topics", [])
         except Exception as e:
-            st.error(f"목차 추출 오류: {e}")
-            return []
+            st.error(f"분석 오류: {e}")
+            return "일반 학습 자료", []
 
 # 문제 출제 기능
 def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
@@ -354,22 +362,22 @@ def process_answer(user_answer, q_data):
     with st.chat_message("assistant"):
         with st.spinner("튜터가 답변을 읽고 생각 중입니다..."):
             
-            # 객관식일 경우 채점 기준표에서 부분점수를 원천 배제
+            # 객관식일 경우 채점 기준표에서 부분점수를 완전히 배제하고 엄격하게 판정
             if q_data.get('type') == 'multiple_choice':
                 eval_rules = """
                 [평가 규칙]
-                1. 사용자의 최근 답변이 정답인지 파악한다. 객관식은 번호나 내용만 말해도 인정한다.
-                2. 객관식 문제이므로 첫 줄에 반드시 **[평가 결과: 정답]**, **[평가 결과: 오답]** 중 하나만 출력한다. (부분점수는 절대 부여하지 않는다.)
-                3. [정답]인 경우: 해설 후 대화를 훈훈하게 마무리한다.
-                4. [오답]인 경우: 정답을 직접 주지 말고, 스스로 깨달을 수 있는 꼬리 질문을 던진다.
+                * 사용자의 최근 답변이 정답인지 파악한다. 객관식은 번호나 내용만 말해도 인정한다.
+                * 객관식 문제이므로 첫 줄에 반드시 **[평가 결과: 정답]**, **[평가 결과: 오답]** 중 하나만 출력한다. (부분점수는 절대 부여하지 않는다. 정답이 아니면 무조건 오답이다.)
+                * [정답]인 경우: 해설 후 대화를 훈훈하게 마무리한다.
+                * [오답]인 경우: 정답을 직접 주지 말고, 스스로 깨달을 수 있는 꼬리 질문을 던진다.
                 """
             else:
                 eval_rules = """
                 [평가 규칙]
-                1. 사용자의 최근 답변이 정답인지 파악한다. 
-                2. 첫 줄에 반드시 **[평가 결과: 정답]**, **[평가 결과: 오답]**, **[평가 결과: 부분점수]** 중 하나를 출력한다.
-                3. [정답]인 경우: 해설 후 대화를 훈훈하게 마무리한다.
-                4. [오답/부분점수]인 경우: 정답을 직접 주지 말고, 스스로 깨달을 수 있는 꼬리 질문을 던진다.
+                * 사용자의 최근 답변이 정답인지 파악한다. 
+                * 첫 줄에 반드시 **[평가 결과: 정답]**, **[평가 결과: 오답]**, **[평가 결과: 부분점수]** 중 하나를 출력한다.
+                * [정답]인 경우: 해설 후 대화를 훈훈하게 마무리한다.
+                * [오답/부분점수]인 경우: 정답을 직접 주지 말고, 스스로 깨달을 수 있는 꼬리 질문을 던진다.
                 """
                 
             eval_sys_instruction = f"""
@@ -448,108 +456,97 @@ elif input_type == "PDF 문서 올리기":
                 context_text += extracted + "\n"
         st.success("✅ 문서 글자 추출 완료")
 
-# 글자가 잘리지 않도록 전체 텍스트 영역 제공
-if context_text:
-    with st.expander("📄 추출된 전체 텍스트 확인 (수정 가능)"):
-        context_text = st.text_area("원문 데이터", context_text, height=300)
-
 if st.button("🔍 문서 분석 및 목차 추출", type="primary"):
     if not context_text.strip():
         st.error("학습 자료를 먼저 입력해야 합니다.")
     else:
         st.session_state.context_data = context_text
-        st.session_state.topics = analyze_topics(context_text)
+        doc_title, doc_topics = analyze_topics(context_text)
+        st.session_state.document_title = doc_title
+        st.session_state.topics = doc_topics
 
 # 목차가 추출되었을 때 선택 기능 제공
 if st.session_state.topics:
     st.divider()
-    st.success("✅ 인공지능이 문서의 목차 분석을 완료했습니다.")
+    st.success("✅ 인공지능이 문서 분석을 완료했습니다.")
     selected_topic = st.selectbox("어떤 부분의 문제를 풀어볼까요?", st.session_state.topics)
     
     if st.button("🧠 해당 목차로 문제 생성하기"):
         generate_new_question(q_type=q_type_select, mode="initial", topic=selected_topic)
 
-# 문답 진행 및 평가 (화면 좌우 분할 적용)
+# 문답 진행 및 평가 (화면 분할 제거, 지문 제목 상단 띄움)
 if st.session_state.question_data:
     q_data = st.session_state.question_data
     
     st.divider()
     st.subheader("두 번째 단계. 개념 검증 문답 (소크라테스 대화)")
     
-    # 화면을 좌우(지문 원문 영역과 문제 영역)로 나눕니다.
-    col_context, col_qa = st.columns([1, 1])
+    # 지문의 출처/제목이 파악된 경우에만 화면에 띄웁니다.
+    if st.session_state.document_title and st.session_state.document_title != "일반 학습 자료":
+        st.info(f"📖 **분석된 지문 출처/제목:** {st.session_state.document_title}")
     
-    with col_context:
-        st.markdown("### 📖 지문 원문 (참고용)")
-        # 텍스트가 너무 길면 스크롤되도록 컨테이너 크기 고정
-        with st.container(height=600):
-            st.markdown(st.session_state.context_data)
-            
-    with col_qa:
-        st.markdown("### 🧑‍🏫 질문 및 문답")
-        # 문제 출력 부분을 확실히 분리하여 항상 보이게 유지
-        with st.container(border=True):
-            display_q = q_data['question'].split('\n')[0]
-            if q_data.get('type') == 'multiple_choice':
-                st.markdown(f"**[객관식]**\n\n### {display_q}")
+    # 문제 출력 부분을 확실히 분리하여 항상 보이게 유지
+    with st.container(border=True):
+        display_q = q_data['question'].split('\n')[0]
+        if q_data.get('type') == 'multiple_choice':
+            st.markdown(f"**[객관식]**\n\n### {display_q}")
+        else:
+            st.markdown(f"**[서술형]**\n\n### {display_q}")
+    
+    col_h1, col_h2 = st.columns(2)
+    with col_h1:
+        with st.expander("💡 1단계 힌트 (핵심어 찾기)"):
+            st.write(", ".join(q_data.get('hint_step1', ["힌트가 제공되지 않는 모드입니다."])))
+    with col_h2:
+        with st.expander("💡 2단계 힌트 (방향 및 문장 틀)"):
+            st.write(q_data.get('hint_step2', "힌트가 제공되지 않는 모드입니다."))
+
+    # 객관식 첫 시도일 때 단추 형식 화면 제공
+    if q_data.get('type') == 'multiple_choice' and not st.session_state.first_attempt_saved:
+        
+        # 인공지능이 선택지를 뭉쳐서 출력했을 경우 강제로 분리하는 안전장치
+        raw_options = q_data.get('options', [])
+        cleaned_options = []
+        for opt in raw_options:
+            if isinstance(opt, str) and "1." in opt and "2." in opt:
+                split_opts = re.split(r'(?=[1-5]\.)', opt)
+                cleaned_options.extend([o.strip() for o in split_opts if o.strip()])
             else:
-                st.markdown(f"**[서술형]**\n\n### {display_q}")
+                cleaned_options.append(opt)
         
-        col_h1, col_h2 = st.columns(2)
-        with col_h1:
-            with st.expander("💡 1단계 힌트 (핵심어 찾기)"):
-                st.write(", ".join(q_data.get('hint_step1', ["힌트가 제공되지 않는 모드입니다."])))
-        with col_h2:
-            with st.expander("💡 2단계 힌트 (방향 및 문장 틀)"):
-                st.write(q_data.get('hint_step2', "힌트가 제공되지 않는 모드입니다."))
-    
-        # 객관식 첫 시도일 때 단추 형식 화면 제공
-        if q_data.get('type') == 'multiple_choice' and not st.session_state.first_attempt_saved:
-            
-            # 인공지능이 선택지를 뭉쳐서 출력했을 경우 강제로 분리하는 안전장치
-            raw_options = q_data.get('options', [])
-            cleaned_options = []
-            for opt in raw_options:
-                if isinstance(opt, str) and "1." in opt and "2." in opt:
-                    split_opts = re.split(r'(?=[1-5]\.)', opt)
-                    cleaned_options.extend([o.strip() for o in split_opts if o.strip()])
-                else:
-                    cleaned_options.append(opt)
-            
-            # 정제된 선택지로 데이터 갱신
-            q_data['options'] = cleaned_options
-            
-            mc_answer = st.radio("아래에서 정답을 선택하세요.", q_data.get('options', []), index=None)
-            if st.button("정답 제출", type="primary"):
-                if mc_answer:
-                    process_answer(mc_answer, q_data)
-                else:
-                    st.warning("선택지를 먼저 고르세요.")
+        # 정제된 선택지로 데이터 갱신
+        q_data['options'] = cleaned_options
         
-        # 채팅 기록 출력
-        for msg in st.session_state.messages:
-            with st.chat_message(msg["role"]):
-                st.markdown(msg["content"])
+        mc_answer = st.radio("아래에서 정답을 선택하세요.", q_data.get('options', []), index=None)
+        if st.button("정답 제출", type="primary"):
+            if mc_answer:
+                process_answer(mc_answer, q_data)
+            else:
+                st.warning("선택지를 먼저 고르세요.")
     
-        # 다음 문제로 넘어가기 행동 선택 (입력창보다 위에 배치하여 가려짐 방지)
-        if st.session_state.first_attempt_saved or st.session_state.is_correct:
-            st.divider()
-            if not st.session_state.is_correct:
-                st.info("💡 튜터의 꼬리 질문에 채팅으로 계속 답변하며 스스로 정답을 찾아보세요! (또는 아래 단추를 눌러 넘어갈 수 있습니다)")
+    # 채팅 기록 출력
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    # 다음 문제로 넘어가기 행동 선택 (입력창보다 위에 배치하여 가려짐 방지)
+    if st.session_state.first_attempt_saved or st.session_state.is_correct:
+        st.divider()
+        if not st.session_state.is_correct:
+            st.info("💡 튜터의 꼬리 질문에 채팅으로 계속 답변하며 스스로 정답을 찾아보세요! (또는 아래 단추를 눌러 넘어갈 수 있습니다)")
+            
+        st.markdown("### 다음 학습을 선택하세요")
+        col_next1, col_next2 = st.columns(2)
+        
+        with col_next1:
+            if st.button("🔄 현재 목차에서 다른 문제 다시 풀기", use_container_width=True):
+                generate_new_question(q_type=q_type_select, mode="similar", prev_question=q_data['question'], topic=st.session_state.get('selected_topic', ''))
                 
-            st.markdown("### 다음 학습을 선택하세요")
-            col_next1, col_next2 = st.columns(2)
-            
-            with col_next1:
-                if st.button("🔄 현재 목차에서 다른 문제 다시 풀기", use_container_width=True):
-                    generate_new_question(q_type=q_type_select, mode="similar", prev_question=q_data['question'], topic=st.session_state.get('selected_topic', ''))
-                    
-            with col_next2:
-                if st.button("➡️ 현재 목차에서 새로운 개념 문제 풀기", use_container_width=True):
-                    generate_new_question(q_type=q_type_select, mode="new", prev_question=q_data['question'], topic=st.session_state.get('selected_topic', ''))
+        with col_next2:
+            if st.button("➡️ 현재 목차에서 새로운 개념 문제 풀기", use_container_width=True):
+                generate_new_question(q_type=q_type_select, mode="new", prev_question=q_data['question'], topic=st.session_state.get('selected_topic', ''))
 
     # 정답을 맞히지 않았고, (서술형이거나 객관식 첫 시도가 지난 후) 채팅창을 가장 마지막에 배치하여 활성화
-    # 참고: st.chat_input은 분할 화면(columns) 내부에 종속되지 않고 화면 맨 하단에 넓게 표시됩니다.
     if not st.session_state.is_correct:
         if q_data.get('type') != 'multiple_choice' or st.session_state.first_attempt_saved:
             user_answer = st.chat_input("답변이나 궁금한 점을 튜터에게 말해보세요...")
