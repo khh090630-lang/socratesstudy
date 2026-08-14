@@ -8,16 +8,16 @@ import re
 # 화면 및 환경 설정
 st.set_page_config(page_title="인공지능 튜터", page_icon="🏛️", layout="wide")
 
-st.title("🏛️ 인공지능 튜터 (v3.2)")
+st.title("🏛️ 인공지능 튜터 (v3.3)")
 st.markdown("학습 자료를 목차별로 나누어 분석하고, 실전 같은 객관식과 서술형 문제를 풀어보세요.")
 
 # 측면 메뉴: 새로고침
 with st.sidebar:
-    st.markdown("### 현재 판본: v3.2")
+    st.markdown("### 현재 판본: v3.3")
     if st.button("🔄 화면 새로고침", use_container_width=True):
         st.rerun()
 
-# 서버 비밀 금고(Secrets)에서 열쇠 꺼내기
+# 서버 비밀 금고에서 열쇠 꺼내기
 try:
     api_key = st.secrets["UPSTAGE_API_KEY"]
     supa_url = st.secrets["SUPABASE_URL"]
@@ -110,15 +110,24 @@ with st.sidebar:
         
         with st.expander(f"🟢 정답 ({len(correct_list)}개)"):
             for item in correct_list:
-                st.markdown(f"**Q:** {item['question']}")
-                st.caption(f"A: {item['user_answer']}")
-                st.divider()
+                display_q = item['question'].split('\n')[0]
+                if st.button(f"Q: {display_q}", key=f"retry_correct_{item['id']}", use_container_width=True):
+                    st.session_state.question_data = {
+                        "type": "retry",
+                        "question": item['question'],
+                        "keywords": ["(인공지능이 문맥을 파악하여 자동 채점합니다)"],
+                        "hint_step1": ["복습 모드에서는 힌트가 제공되지 않습니다."],
+                        "hint_step2": "이전에 정답을 맞혔던 문제입니다. 기억을 되살려 다시 완벽하게 풀어보세요!"
+                    }
+                    st.session_state.messages = []
+                    st.session_state.first_attempt_saved = False
+                    st.session_state.is_correct = False
+                    st.rerun()
                 
         with st.expander(f"🟡 부분점수 ({len(partial_list)}개)"):
             for item in partial_list:
-                st.markdown(f"**Q:** {item['question']}")
-                st.caption(f"A: {item['user_answer']}")
-                if st.button("🔄 이 문제 다시 풀기", key=f"retry_{item['id']}"):
+                display_q = item['question'].split('\n')[0]
+                if st.button(f"Q: {display_q}", key=f"retry_{item['id']}", use_container_width=True):
                     st.session_state.question_data = {
                         "type": "retry",
                         "question": item['question'],
@@ -130,13 +139,11 @@ with st.sidebar:
                     st.session_state.first_attempt_saved = False
                     st.session_state.is_correct = False
                     st.rerun()
-                st.divider()
                 
         with st.expander(f"🔴 오답 ({len(incorrect_list)}개)"):
             for item in incorrect_list:
-                st.markdown(f"**Q:** {item['question']}")
-                st.caption(f"A: {item['user_answer']}")
-                if st.button("🔄 이 문제 다시 풀기", key=f"retry_wrong_{item['id']}"):
+                display_q = item['question'].split('\n')[0]
+                if st.button(f"Q: {display_q}", key=f"retry_wrong_{item['id']}", use_container_width=True):
                     st.session_state.question_data = {
                         "type": "retry",
                         "question": item['question'],
@@ -148,7 +155,6 @@ with st.sidebar:
                     st.session_state.first_attempt_saved = False
                     st.session_state.is_correct = False
                     st.rerun()
-                st.divider()
 
 # 목차 분석 기능
 def analyze_topics(text):
@@ -320,7 +326,6 @@ def process_answer(user_answer, q_data):
                 if not st.session_state.first_attempt_saved and q_data.get('type') != 'retry':
                     save_q = q_data['question']
                     if q_data.get('type') == 'multiple_choice':
-                        # 저장할 때도 정제된 선택지 문자열 활용
                         save_q += "\n" + "\n".join(q_data.get('options', []))
                         
                     try:
@@ -373,7 +378,7 @@ if st.button("🔍 문서 분석 및 목차 추출", type="primary"):
         st.session_state.context_data = context_text
         st.session_state.topics = analyze_topics(context_text)
 
-# 목차가 추출되었을 때 선택 UI 제공
+# 목차가 추출되었을 때 선택 기능 제공
 if st.session_state.topics:
     st.divider()
     st.success("✅ 인공지능이 문서의 목차 분석을 완료했습니다.")
@@ -391,10 +396,11 @@ if st.session_state.question_data:
     
     # 문제 출력 부분을 확실히 분리하여 항상 보이게 유지
     with st.container(border=True):
+        display_q = q_data['question'].split('\n')[0]
         if q_data.get('type') == 'multiple_choice':
-            st.markdown(f"🧑‍🏫 **객관식 질문:**\n\n### {q_data['question']}")
+            st.markdown(f"🧑‍🏫 **객관식 질문:**\n\n### {display_q}")
         else:
-            st.markdown(f"🧑‍🏫 **서술형 질문:**\n\n### {q_data['question']}")
+            st.markdown(f"🧑‍🏫 **서술형 질문:**\n\n### {display_q}")
     
     col_h1, col_h2 = st.columns(2)
     with col_h1:
@@ -404,7 +410,7 @@ if st.session_state.question_data:
         with st.expander("💡 2단계 힌트 (방향 및 문장 틀)"):
             st.write(q_data.get('hint_step2', "힌트가 제공되지 않는 모드입니다."))
 
-    # 객관식 첫 시도일 때 라디오 버튼 UI 제공
+    # 객관식 첫 시도일 때 단추 형식 화면 제공
     if q_data.get('type') == 'multiple_choice' and not st.session_state.first_attempt_saved:
         
         # 인공지능이 선택지를 뭉쳐서 출력했을 경우 강제로 분리하는 안전장치
@@ -432,14 +438,7 @@ if st.session_state.question_data:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    # 정답을 맞히지 않았고, (서술형이거나 객관식 첫 시도가 지난 후) 채팅창 활성화
-    if not st.session_state.is_correct:
-        if q_data.get('type') != 'multiple_choice' or st.session_state.first_attempt_saved:
-            user_answer = st.chat_input("답변이나 궁금한 점을 튜터에게 말해보세요...")
-            if user_answer:
-                process_answer(user_answer, q_data)
-
-    # 다음 문제로 넘어가기 행동 선택
+    # 다음 문제로 넘어가기 행동 선택 (입력창보다 위에 배치하여 가려짐 방지)
     if st.session_state.first_attempt_saved or st.session_state.is_correct:
         st.divider()
         if not st.session_state.is_correct:
@@ -455,3 +454,10 @@ if st.session_state.question_data:
         with col_next2:
             if st.button("➡️ 현재 목차에서 새로운 개념 문제 풀기", use_container_width=True):
                 generate_new_question(q_type=q_type_select, mode="new", prev_question=q_data['question'], topic=st.session_state.get('selected_topic', ''))
+
+    # 정답을 맞히지 않았고, (서술형이거나 객관식 첫 시도가 지난 후) 채팅창을 가장 마지막에 배치하여 활성화
+    if not st.session_state.is_correct:
+        if q_data.get('type') != 'multiple_choice' or st.session_state.first_attempt_saved:
+            user_answer = st.chat_input("답변이나 궁금한 점을 튜터에게 말해보세요...")
+            if user_answer:
+                process_answer(user_answer, q_data)
