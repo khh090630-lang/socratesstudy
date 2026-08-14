@@ -205,7 +205,7 @@ hr {
 </style>
 """, unsafe_allow_html=True)
 
-st.title("■ 인공지능 튜터 (v12.0)")
+st.title("■ 인공지능 튜터 (v13.0)")
 
 # 서버 비밀 금고에서 열쇠 꺼내기
 try:
@@ -285,7 +285,7 @@ with st.sidebar:
         supabase.auth.sign_out()
         st.rerun()
     st.divider()
-    st.caption("현재 판본: v12.0 (생명과학 예시 적용)")
+    st.caption("현재 판본: v13.0 (JSON 오류 방지 강화)")
 
 # --- 공통 함수 ---
 
@@ -327,9 +327,9 @@ def analyze_topics(text):
         * document_title: 제시된 자료가 문학 작품(시, 소설 등), 비문학 독해 지문, 영어 지문 등 특정한 '본문'을 바탕으로 한다면 그 작품의 제목이나 핵심 소재(예: '윤동주 - 서시', '두 편의 시(길, 장래희망)')를 구체적으로 추출하라. 단순한 이론이나 과학 개념 설명문인 경우에만 '일반 학습 자료'라고 작성하라.
         * topics: 전체 내용을 아우르는 핵심 목차(카테고리) 3~5개를 배열 형태로 추출하라.
         
-        [최고 수준의 경고: JSON 파싱 에러 방지 규칙]
-        1. 시의 연 구분, 문단 나누기 등 어떤 이유로든 텍스트 값 내부에 줄바꿈(Enter/Newline) 문자를 절대 넣지 마라.
-        2. 인용구, 대화, 강조 표현에 큰따옴표(") 대신 반드시 작은따옴표(')만 사용하라.
+        [🔥가장 엄격한 규칙: JSON 에러 방지🔥]
+        1. 모든 내용(Value) 안에 큰따옴표(")를 절대 쓰지 마세요. 무조건 작은따옴표(')를 쓰세요.
+        2. 텍스트 값 내부에 줄바꿈(Enter/Newline) 문자를 절대 넣지 마세요. 모두 한 줄로 쓰세요.
         
         반드시 아래 JSON 형식으로 출력하라.
         {
@@ -347,6 +347,9 @@ def analyze_topics(text):
             raw_content = response.choices[0].message.content.strip().replace("```json", "").replace("```", "")
             result = json.loads(raw_content, strict=False)
             return result.get("document_title", "일반 학습 자료"), result.get("topics", [])
+        except json.JSONDecodeError as je:
+            st.error("문서 분석 중 인공지능이 응답 형식을 위반했습니다. 단추를 다시 한 번 눌러주세요.")
+            return "일반 학습 자료", []
         except Exception as e:
             st.error(f"분석 오류: {e}")
             return "일반 학습 자료", []
@@ -368,10 +371,6 @@ def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
             * hint_step2: 질문 조건에 맞는 모범 답안 문장에서 주요 명사 4~6개를 밑줄(______)로 완벽히 교체한 문장. 
             * keywords: 정답 채점을 위한 핵심어 배열.
             
-            [최고 수준의 경고: JSON 파싱 에러 방지 규칙]
-            1. 시의 구절을 인용하거나 선지를 길게 쓸 때, 데이터 값 내부에 줄바꿈(Enter/Newline)을 절대 넣지 마라. 모두 띄어쓰기로 이어 붙여라.
-            2. 인용구, 대화, 작품명 표기 시 큰따옴표(") 대신 무조건 작은따옴표(')만 사용하라.
-            
             반드시 아래의 JSON 형식만 출력한다.
             {
                 "type": "subjective",
@@ -391,10 +390,6 @@ def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
             * hint_step1: 문제를 푸는 데 필요한 핵심 개념 핵심어 2~3개 배열.
             * hint_step2: 직접적인 정답이 아닌, 추론의 방향을 잡아주는 짧은 조언.
             
-            [최고 수준의 경고: JSON 파싱 에러 방지 규칙]
-            1. 시의 구절을 인용하거나 선지를 길게 쓸 때, 데이터 값 내부에 줄바꿈(Enter/Newline)을 절대 넣지 마라. 모두 띄어쓰기로 이어 붙여 한 줄로 작성하라.
-            2. 인용구, 대화, 작품명 표기 시 큰따옴표(") 대신 무조건 작은따옴표(')만 사용하라.
-            
             반드시 아래의 JSON 형식만 출력한다.
             {
                 "type": "multiple_choice",
@@ -409,7 +404,17 @@ def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
             }
             """
             
-        system_instruction = f"당신은 학습 자료를 바탕으로 학생의 사고력을 기르는 출제자이다.\n아래의 규칙에 따라 문제를 생성한다.\n{mode_instruction}\n{type_instruction}"
+        system_instruction = f"""당신은 학습 자료를 바탕으로 학생의 사고력을 기르는 출제자이다.
+
+[🔥가장 엄격한 규칙: JSON 에러 방지🔥]
+1. 출력하는 텍스트는 완벽한 JSON 형식이어야 합니다.
+2. Value(질문, 선택지, 힌트 등) 내용 안에는 **절대 큰따옴표(")를 사용하지 마세요.** 강조나 인용이 필요하면 반드시 **작은따옴표(')**를 사용하세요. (예: "question": "다음 '세균'의 특징으로...")
+3. Value(질문, 선택지, 힌트 등) 내용 안에 **절대 줄바꿈(Enter)을 넣지 마세요.** 모든 문장은 한 줄로 길게 이어서 작성하세요.
+
+아래의 출제 규칙에 따라 문제를 생성한다.
+{mode_instruction}
+{type_instruction}"""
+        
         safe_context = st.session_state.context_data[:12000]
         user_content = f"[학습 자료 내용]\n{safe_context}"
         
@@ -426,6 +431,8 @@ def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
             st.session_state.first_attempt_saved = False
             st.session_state.is_correct = False
             st.rerun()
+        except json.JSONDecodeError as je:
+            st.error(f"인공지능이 문제의 글 양식을 잘못 구성하여 화면에 띄울 수 없습니다. 단추를 다시 한 번 눌러주세요. (상세오류: {je})")
         except Exception as e:
             st.error(f"연결 오류가 발생했습니다. (상세 오류: {e})")
 
@@ -455,11 +462,16 @@ def process_answer(user_answer, q_data):
                 
             eval_sys_instruction = f"""
             당신은 학생의 사고력을 길러주는 튜터이다.
+            
+            [🔥가장 엄격한 규칙: JSON 에러 방지🔥]
+            응답 내부에 큰따옴표(")를 피하고 작은따옴표(')만 사용하세요.
+
             [문제 정보]
             문제 유형: {q_data.get('type')}
             질문: {q_data['question']}
             객관식 선지: {q_data.get('options', '없음')}
             정답 기준: {q_data.get('answer_key', q_data.get('keywords', '인공지능이 문맥 파악'))}
+            
             {eval_rules}
             """
             
