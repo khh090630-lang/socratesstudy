@@ -8,12 +8,12 @@ import re
 # 화면 및 환경 설정
 st.set_page_config(page_title="인공지능 튜터", page_icon="🏛️", layout="wide")
 
-st.title("🏛️ 인공지능 튜터 (v3.3)")
+st.title("🏛️ 인공지능 튜터 (v3.4)")
 st.markdown("학습 자료를 목차별로 나누어 분석하고, 실전 같은 객관식과 서술형 문제를 풀어보세요.")
 
 # 측면 메뉴: 새로고침
 with st.sidebar:
-    st.markdown("### 현재 판본: v3.3")
+    st.markdown("### 현재 판본: v3.4")
     if st.button("🔄 화면 새로고침", use_container_width=True):
         st.rerun()
 
@@ -82,6 +82,17 @@ if st.session_state.user is None:
                 st.error(f"가입 실패: {e}")
     st.stop()
 
+# 기록에서 문제와 선택지를 분리해내는 해독 함수
+def parse_history_question(raw_text):
+    match = re.search(r'\n\s*1\.', raw_text)
+    if match:
+        idx = match.start()
+        q_text = raw_text[:idx].strip()
+        opts_text = raw_text[idx:].strip()
+        opts = [o.strip() for o in opts_text.split('\n') if o.strip()]
+        return "multiple_choice", q_text, opts
+    return "subjective", raw_text, []
+
 # 로그아웃 및 오답 노트 불러오기
 with st.sidebar:
     st.divider()
@@ -112,9 +123,12 @@ with st.sidebar:
             for item in correct_list:
                 display_q = item['question'].split('\n')[0]
                 if st.button(f"Q: {display_q}", key=f"retry_correct_{item['id']}", use_container_width=True):
+                    q_type, q_text, q_opts = parse_history_question(item['question'])
                     st.session_state.question_data = {
-                        "type": "retry",
-                        "question": item['question'],
+                        "type": q_type,
+                        "is_retry": True,
+                        "question": q_text,
+                        "options": q_opts,
                         "keywords": ["(인공지능이 문맥을 파악하여 자동 채점합니다)"],
                         "hint_step1": ["복습 모드에서는 힌트가 제공되지 않습니다."],
                         "hint_step2": "이전에 정답을 맞혔던 문제입니다. 기억을 되살려 다시 완벽하게 풀어보세요!"
@@ -128,9 +142,12 @@ with st.sidebar:
             for item in partial_list:
                 display_q = item['question'].split('\n')[0]
                 if st.button(f"Q: {display_q}", key=f"retry_{item['id']}", use_container_width=True):
+                    q_type, q_text, q_opts = parse_history_question(item['question'])
                     st.session_state.question_data = {
-                        "type": "retry",
-                        "question": item['question'],
+                        "type": q_type,
+                        "is_retry": True,
+                        "question": q_text,
+                        "options": q_opts,
                         "keywords": ["(인공지능이 문맥을 파악하여 자동 채점합니다)"],
                         "hint_step1": ["복습 모드에서는 힌트가 제공되지 않습니다."],
                         "hint_step2": "이전에 아쉽게 부분 점수를 받았던 문제입니다. 완벽한 답을 적어보세요!"
@@ -144,9 +161,12 @@ with st.sidebar:
             for item in incorrect_list:
                 display_q = item['question'].split('\n')[0]
                 if st.button(f"Q: {display_q}", key=f"retry_wrong_{item['id']}", use_container_width=True):
+                    q_type, q_text, q_opts = parse_history_question(item['question'])
                     st.session_state.question_data = {
-                        "type": "retry",
-                        "question": item['question'],
+                        "type": q_type,
+                        "is_retry": True,
+                        "question": q_text,
+                        "options": q_opts,
                         "keywords": ["(인공지능이 문맥을 파악하여 자동 채점합니다)"],
                         "hint_step1": ["복습 모드에서는 힌트가 제공되지 않습니다."],
                         "hint_step2": "이전에 틀렸던 문제입니다. 배운 내용을 적용하여 다시 도전해 보세요!"
@@ -323,7 +343,8 @@ def process_answer(user_answer, q_data):
                 if eval_result == "정답":
                     st.session_state.is_correct = True
                 
-                if not st.session_state.first_attempt_saved and q_data.get('type') != 'retry':
+                # 중복 저장을 막기 위해 복습 모드(is_retry)가 아닐 때만 저장합니다.
+                if not st.session_state.first_attempt_saved and not q_data.get('is_retry'):
                     save_q = q_data['question']
                     if q_data.get('type') == 'multiple_choice':
                         save_q += "\n" + "\n".join(q_data.get('options', []))
@@ -396,11 +417,10 @@ if st.session_state.question_data:
     
     # 문제 출력 부분을 확실히 분리하여 항상 보이게 유지
     with st.container(border=True):
-        display_q = q_data['question'].split('\n')[0]
         if q_data.get('type') == 'multiple_choice':
-            st.markdown(f"🧑‍🏫 **객관식 질문:**\n\n### {display_q}")
+            st.markdown(f"🧑‍🏫 **객관식 질문:**\n\n### {q_data['question']}")
         else:
-            st.markdown(f"🧑‍🏫 **서술형 질문:**\n\n### {display_q}")
+            st.markdown(f"🧑‍🏫 **서술형 질문:**\n\n### {q_data['question']}")
     
     col_h1, col_h2 = st.columns(2)
     with col_h1:
