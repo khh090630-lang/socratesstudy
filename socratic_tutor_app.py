@@ -8,180 +8,153 @@ import re
 # 화면 및 환경 설정
 st.set_page_config(page_title="인공지능 튜터", page_icon="🏛️", layout="wide")
 
-# 2001 기계식(Console Hardware) 화면 꾸밈 CSS 강제 주입
+# 문서형(Notion-style) 화면 꾸밈 CSS 강제 주입
 st.markdown("""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+
 :root {
-  --color-canvas: #7a8aba;         
-  --color-periwinkle: #8ba1d4;     
-  --color-sky: #9fbee7;            
-  --color-chrome-indigo: #3d4f97;  
-  --color-platinum: #dedede;       
-  --color-carbon: #21242e;         
-  --color-primary: #e60012;        
-  --color-signal: #f68d1f;         
-  --color-amber: #ecab37;          
-  --color-nav-gold: #e48600;       
-  --rounded-none: 0px;             
-  --rounded-xs: 2px;
-  --rounded-sm: 4px;
-  --spacing-sm: 8px;
+  --color-canvas-soft: #f6f5f4;
+  --color-surface: #ffffff;
+  --color-ink: #000000;
+  --color-ink-secondary: #31302e;
+  --color-hairline: #e6e6e6;
+  --color-primary: #0075de;
+  --color-primary-active: #005bab;
+  
+  --rounded-xs: 4px;
+  --rounded-md: 8px;
+  --rounded-lg: 12px;
+  --rounded-full: 9999px;
+  
+  /* 옅고 부드러운 여러 겹의 그림자 */
+  --shadow-soft: 0 0.175px 1.041px rgba(0,0,0,0.01), 0 0.8px 2.925px rgba(0,0,0,0.02), 0 2.025px 7.847px rgba(0,0,0,0.027), 0 4px 18px rgba(0,0,0,0.04);
 }
 
 /* 기본 글꼴 강제 설정 */
 html, body, [class*="css"] {
-    font-family: Arial, Helvetica, sans-serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif !important;
+    color: var(--color-ink) !important;
 }
 
-/* 전체 배경 (차가운 메탈 크롬) */
+/* 전체 배경 (따뜻한 종이 느낌) */
 .stApp {
-    background-color: var(--color-canvas) !important;
+    background-color: var(--color-canvas-soft) !important;
 }
 
-/* 측면 메뉴 배경 (Carbon Navy + 하프톤 스피커 그릴 텍스처) */
+/* 측면 메뉴 배경 */
 [data-testid="stSidebar"] {
-    background-color: var(--color-carbon) !important;
-    background-image: radial-gradient(var(--color-chrome-indigo) 1px, transparent 1px) !important;
-    background-size: 4px 4px !important;
-    border-right: 3px solid var(--color-chrome-indigo) !important;
+    background-color: var(--color-canvas-soft) !important;
+    border-right: 1px solid var(--color-hairline) !important;
+    background-image: none !important; /* 기존 스피커 그릴 텍스처 제거 */
 }
 [data-testid="stSidebar"] * {
-    color: #ffffff !important;
-}
-
-/* 제목 꾸밈 (게임 박스아트 느낌의 굵은 테두리와 그림자) */
-h1, h2, h3 {
-    font-family: 'Arial Black', Arial, sans-serif !important;
-    color: #ffffff !important;
-    -webkit-text-stroke: 1.5px var(--color-carbon);
-    text-shadow: 3px 3px 0px var(--color-carbon);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-/* 설명글 및 라벨 (실크스크린 라벨 느낌) */
-label, .stMarkdown p strong {
-    font-size: 12px !important;
-    font-weight: bold !important;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--color-carbon);
-}
-[data-testid="stSidebar"] label, [data-testid="stSidebar"] .stMarkdown p strong {
-    color: #ffffff !important;
+    color: var(--color-ink-secondary) !important;
     text-shadow: none !important;
-    -webkit-text-stroke: 0px;
 }
 
-/* 정답 제출 등 주요 액션 단추 (Signal Orange) */
+/* 제목 꾸밈 (깔끔하고 단단한 느낌, 자간 축소) */
+h1, h2, h3 {
+    color: var(--color-ink) !important;
+    font-weight: 700 !important;
+    letter-spacing: -1px !important;
+    -webkit-text-stroke: 0px !important;
+    text-shadow: none !important;
+    text-transform: none !important;
+}
+h1 { 
+    font-weight: 900 !important;
+    letter-spacing: -2.125px !important; 
+}
+
+/* 정답 제출 등 주요 액션 단추 (파란색, 알약 모양) */
 button[kind="primary"] {
-    background-color: var(--color-signal) !important;
+    background-color: var(--color-primary) !important;
     color: #ffffff !important;
-    font-weight: bold !important;
-    text-transform: uppercase !important;
-    border-radius: var(--rounded-xs) !important;
-    border-top: 2px solid #ffb86c !important;
-    border-bottom: 2px solid #b85d00 !important;
-    border-left: 1px solid #ffb86c !important;
-    border-right: 1px solid #b85d00 !important;
-}
-button[kind="primary"]:active {
-    border-top: 2px solid #b85d00 !important;
-    border-bottom: 2px solid #ffb86c !important;
-    border-left: 2px solid #b85d00 !important;
-    border-right: 2px solid #ffb86c !important;
-}
-
-/* 보조 단추 (Platinum Gray 메탈 플레이트) */
-button[kind="secondary"] {
-    background-color: var(--color-platinum) !important;
-    color: var(--color-carbon) !important;
-    font-weight: bold !important;
-    text-transform: uppercase !important;
-    border-radius: var(--rounded-xs) !important;
-    border-top: 2px solid #ffffff !important;
-    border-bottom: 2px solid #aaaaaa !important;
-    border-left: 1px solid #ffffff !important;
-    border-right: 1px solid #aaaaaa !important;
-}
-
-/* 측면 메뉴 내부 단추 (Carbon) */
-[data-testid="stSidebar"] button[kind="secondary"] {
-    background-color: #1a1c23 !important;
-    color: #ffffff !important;
-    border-top: 1px solid #4a5a8a !important;
-    border-bottom: 1px solid #000000 !important;
-    border-left: 1px solid #4a5a8a !important;
-    border-right: 1px solid #000000 !important;
-}
-
-/* 입력창 및 패널 (물리적인 기계 음각 효과) */
-.stTextInput input, .stTextArea textarea, [data-testid="stSelectbox"] div[data-baseweb="select"] {
-    background-color: #ffffff !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    border-radius: var(--rounded-full) !important;
     border: none !important;
-    border-top: 2px solid var(--color-chrome-indigo) !important;
-    border-left: 2px solid var(--color-chrome-indigo) !important;
-    border-bottom: 1px solid #ffffff !important;
-    border-right: 1px solid #ffffff !important;
-    border-radius: var(--rounded-xs) !important;
-    color: var(--color-carbon) !important;
+    padding: 8px 24px !important;
+    box-shadow: var(--shadow-soft) !important;
+}
+button[kind="primary"]:active, button[kind="primary"]:hover {
+    background-color: var(--color-primary-active) !important;
+    border: none !important;
 }
 
-/* 묶음 패널 (베벨 금속판 효과) */
+/* 보조 단추 (일반 둥근 사각형) */
+button[kind="secondary"] {
+    background-color: var(--color-surface) !important;
+    color: var(--color-ink) !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    border-radius: var(--rounded-md) !important;
+    border: 1px solid var(--color-hairline) !important;
+    padding: 4px 14px !important;
+    box-shadow: none !important;
+}
+button[kind="secondary"]:hover {
+    background-color: #f0f0f0 !important;
+    border: 1px solid #cccccc !important;
+}
+
+/* 입력창 및 패널 */
+.stTextInput input, .stTextArea textarea, [data-testid="stSelectbox"] div[data-baseweb="select"] {
+    background-color: var(--color-surface) !important;
+    border: 1px solid #dddddd !important;
+    border-radius: var(--rounded-xs) !important;
+    color: var(--color-ink) !important;
+    padding: 6px 12px !important;
+}
+
+/* 묶음 패널 (카드 느낌, 옅은 선과 부드러운 그림자) */
 [data-testid="stExpander"], div[data-testid="stContainer"] {
-    background-color: var(--color-platinum) !important;
-    border-radius: var(--rounded-sm) !important;
-    border-top: 2px solid #ffffff !important;
-    border-bottom: 2px solid #aaaaaa !important;
-    border-left: 1px solid #ffffff !important;
-    border-right: 1px solid #aaaaaa !important;
-    padding: var(--spacing-sm) !important;
+    background-color: var(--color-surface) !important;
+    border-radius: var(--rounded-lg) !important;
+    border: 1px solid var(--color-hairline) !important;
+    padding: 16px !important;
+    box-shadow: var(--shadow-soft) !important;
 }
 [data-testid="stExpander"] * {
-    color: var(--color-carbon) !important;
+    color: var(--color-ink) !important;
 }
 
-/* 측면 메뉴 내 묶음 패널은 예외 처리 */
+/* 측면 메뉴 내 묶음 패널 예외 처리 */
 [data-testid="stSidebar"] [data-testid="stExpander"] {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.3) !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.8) !important;
-    border-left: 1px solid rgba(255, 255, 255, 0.3) !important;
-    border-right: 1px solid rgba(0, 0, 0, 0.8) !important;
-}
-[data-testid="stSidebar"] [data-testid="stExpander"] * {
-    color: #ffffff !important;
+    background-color: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid var(--color-hairline) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
 }
 
 /* 채팅창 말풍선 */
 .stChatMessage {
-    background-color: var(--color-periwinkle) !important;
-    border-radius: var(--rounded-sm) !important;
-    border-top: 2px solid #ffffff !important;
-    border-bottom: 2px solid var(--color-chrome-indigo) !important;
-    color: var(--color-carbon) !important;
+    background-color: var(--color-surface) !important;
+    border-radius: var(--rounded-lg) !important;
+    border: 1px solid var(--color-hairline) !important;
+    color: var(--color-ink) !important;
+    box-shadow: var(--shadow-soft) !important;
 }
 
 /* 안내 및 경고 상자 */
 .stAlert {
-    background-color: var(--color-sky) !important;
-    border: none !important;
-    border-top: 2px solid #ffffff !important;
-    border-left: 2px solid #ffffff !important;
-    border-bottom: 2px solid var(--color-chrome-indigo) !important;
-    border-right: 2px solid var(--color-chrome-indigo) !important;
-    border-radius: var(--rounded-none) !important;
-    color: var(--color-carbon) !important;
+    background-color: var(--color-surface) !important;
+    border: 1px solid var(--color-hairline) !important;
+    border-radius: var(--rounded-lg) !important;
+    color: var(--color-ink) !important;
+    box-shadow: var(--shadow-soft) !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🏛️ 인공지능 튜터 (v4.0)")
+st.title("🏛️ 인공지능 튜터 (v5.0)")
 st.markdown("학습 자료를 목차별로 나누어 분석하고, 실전 같은 객관식과 서술형 문제를 풀어보세요.")
 
 # 측면 메뉴: 새로고침
 with st.sidebar:
-    st.markdown("### 현재 판본: v4.0 (기계식 꾸밈 적용)")
+    st.markdown("### 현재 판본: v5.0")
     if st.button("🔄 화면 새로고침", use_container_width=True):
         st.rerun()
 
