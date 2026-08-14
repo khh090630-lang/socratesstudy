@@ -163,7 +163,9 @@ def analyze_topics(text):
                 ],
                 response_format={"type": "json_object"}
             )
-            result = json.loads(response.choices[0].message.content)
+            raw_content = response.choices[0].message.content.strip()
+            raw_content = raw_content.replace("```json", "").replace("```", "")
+            result = json.loads(raw_content, strict=False)
             return result.get("topics", [])
         except Exception as e:
             st.error(f"목차 추출 오류: {e}")
@@ -236,7 +238,10 @@ def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
                 response_format={"type": "json_object"}
             )
             
-            result = json.loads(response.choices[0].message.content)
+            raw_content = response.choices[0].message.content.strip()
+            raw_content = raw_content.replace("```json", "").replace("```", "")
+            result = json.loads(raw_content, strict=False)
+            
             st.session_state.question_data = result
             st.session_state.messages = [] 
             st.session_state.first_attempt_saved = False
