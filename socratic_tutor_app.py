@@ -23,7 +23,7 @@ try:
     supa_url = st.secrets["SUPABASE_URL"]
     supa_key = st.secrets["SUPABASE_KEY"]
 except KeyError:
-    st.error("서버에 API 열쇠가 등록되지 않았습니다. 관리자 설정(Secrets)을 확인하세요.")
+    st.error("서버에 통신 열쇠가 등록되지 않았습니다. 관리자 설정을 확인하세요.")
     st.stop()
 
 # 인공지능 및 데이터베이스 연결
@@ -122,7 +122,7 @@ with st.sidebar:
                     st.session_state.question_data = {
                         "type": "retry",
                         "question": item['question'],
-                        "keywords": ["(AI가 문맥을 파악하여 자동 채점합니다)"],
+                        "keywords": ["(인공지능이 문맥을 파악하여 자동 채점합니다)"],
                         "hint_step1": ["복습 모드에서는 힌트가 제공되지 않습니다."],
                         "hint_step2": "이전에 아쉽게 부분 점수를 받았던 문제입니다. 완벽한 답을 적어보세요!"
                     }
@@ -140,7 +140,7 @@ with st.sidebar:
                     st.session_state.question_data = {
                         "type": "retry",
                         "question": item['question'],
-                        "keywords": ["(AI가 문맥을 파악하여 자동 채점합니다)"],
+                        "keywords": ["(인공지능이 문맥을 파악하여 자동 채점합니다)"],
                         "hint_step1": ["복습 모드에서는 힌트가 제공되지 않습니다."],
                         "hint_step2": "이전에 틀렸던 문제입니다. 배운 내용을 적용하여 다시 도전해 보세요!"
                     }
@@ -152,7 +152,7 @@ with st.sidebar:
 
 # 목차 분석 기능
 def analyze_topics(text):
-    with st.spinner("AI가 문서의 구조를 분석하여 목차를 추출하고 있습니다..."):
+    with st.spinner("인공지능이 문서의 구조를 분석하여 목차를 추출하고 있습니다..."):
         sys_instruction = """
         주어진 학습 자료를 분석하여 전체 내용을 아우르는 핵심 목차(카테고리) 3~5개를 배열 형태로 추출하라. 
         반드시 JSON 형식으로 출력하라. 
@@ -211,9 +211,9 @@ def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
             type_instruction = """
             [객관식 출제 규칙]
             * 질문: 단순 암기가 아닌, 본문 내용을 바탕으로 한 추론, 인과관계 파악을 묻는 발문 작성.
-            * options: 1번부터 5번까지의 선택지 배열. 매력적인 오답을 교묘하게 섞을 것.
+            * options: 1번부터 5번까지의 선택지 내용. 반드시 5개의 독립된 문자열 원소를 가진 배열 형태로 출력할 것. 절대 하나의 문자열 안에 여러 선택지를 뭉쳐서 적지 말 것.
             * answer_key: 정답 선택지의 번호(정수형).
-            * hint_step1: 문제를 푸는 데 필요한 핵심 개념 키워드 2~3개 배열.
+            * hint_step1: 문제를 푸는 데 필요한 핵심 개념 핵심어 2~3개 배열.
             * hint_step2: 직접적인 정답이 아닌, 추론의 방향을 잡아주는 짧은 조언.
             
             [매우 중요: JSON 문법 규칙]
@@ -224,7 +224,13 @@ def generate_new_question(q_type, mode="initial", prev_question="", topic=""):
             {
                 "type": "multiple_choice",
                 "question": "추론형 객관식 질문 내용",
-                "options": ["1. 선지내용", "2. 선지내용", "3. 선지내용", "4. 선지내용", "5. 선지내용"],
+                "options": [
+                    "1. 첫 번째 선택지 내용", 
+                    "2. 두 번째 선택지 내용", 
+                    "3. 세 번째 선택지 내용", 
+                    "4. 네 번째 선택지 내용", 
+                    "5. 다섯 번째 선택지 내용"
+                ],
                 "answer_key": 3,
                 "hint_step1": ["개념1", "개념2"],
                 "hint_step2": "조언 문장",
@@ -282,13 +288,13 @@ def process_answer(user_answer, q_data):
             문제 유형: {q_data.get('type')}
             질문: {q_data['question']}
             객관식 선지: {q_data.get('options', '없음')}
-            정답 기준: {q_data.get('answer_key', q_data.get('keywords', 'AI가 문맥 파악'))}
+            정답 기준: {q_data.get('answer_key', q_data.get('keywords', '인공지능이 문맥 파악'))}
             
             [평가 규칙]
             1. 사용자의 최근 답변이 정답인지 파악한다. 객관식은 번호나 내용만 말해도 인정한다.
             2. 첫 줄에 반드시 **[평가 결과: 정답]**, **[평가 결과: 오답]**, **[평가 결과: 부분점수]** 중 하나를 출력한다.
             3. [정답]인 경우: 해설 후 대화를 훈훈하게 마무리한다.
-            4. [오답/부분점수]인 경우: 정답을 직접 주지 말고, 스스로 깨달을 수 있는 꼬리 질문(Follow-up Question)을 던진다.
+            4. [오답/부분점수]인 경우: 정답을 직접 주지 말고, 스스로 깨달을 수 있는 꼬리 질문을 던진다.
             """
             
             api_messages = [{"role": "system", "content": eval_sys_instruction}]
@@ -314,7 +320,8 @@ def process_answer(user_answer, q_data):
                 if not st.session_state.first_attempt_saved and q_data.get('type') != 'retry':
                     save_q = q_data['question']
                     if q_data.get('type') == 'multiple_choice':
-                        save_q += "\n" + "\n".join(q_data['options'])
+                        # 저장할 때도 정제된 선택지 문자열 활용
+                        save_q += "\n" + "\n".join(q_data.get('options', []))
                         
                     try:
                         supabase.table("qa_history").insert({
@@ -369,7 +376,7 @@ if st.button("🔍 문서 분석 및 목차 추출", type="primary"):
 # 목차가 추출되었을 때 선택 UI 제공
 if st.session_state.topics:
     st.divider()
-    st.success("✅ AI가 문서의 목차 분석을 완료했습니다.")
+    st.success("✅ 인공지능이 문서의 목차 분석을 완료했습니다.")
     selected_topic = st.selectbox("어떤 부분의 문제를 풀어볼까요?", st.session_state.topics)
     
     if st.button("🧠 해당 목차로 문제 생성하기"):
@@ -399,6 +406,20 @@ if st.session_state.question_data:
 
     # 객관식 첫 시도일 때 라디오 버튼 UI 제공
     if q_data.get('type') == 'multiple_choice' and not st.session_state.first_attempt_saved:
+        
+        # 인공지능이 선택지를 뭉쳐서 출력했을 경우 강제로 분리하는 안전장치
+        raw_options = q_data.get('options', [])
+        cleaned_options = []
+        for opt in raw_options:
+            if isinstance(opt, str) and "1." in opt and "2." in opt:
+                split_opts = re.split(r'(?=[1-5]\.)', opt)
+                cleaned_options.extend([o.strip() for o in split_opts if o.strip()])
+            else:
+                cleaned_options.append(opt)
+        
+        # 정제된 선택지로 데이터 갱신
+        q_data['options'] = cleaned_options
+        
         mc_answer = st.radio("아래에서 정답을 선택하세요.", q_data.get('options', []), index=None)
         if st.button("정답 제출", type="primary"):
             if mc_answer:
